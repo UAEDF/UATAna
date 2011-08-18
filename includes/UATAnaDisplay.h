@@ -29,13 +29,13 @@ class UATAnaDisplay {
   vector<TH1F*> PlotCCGroup ;
   vector<TH1F*> PlotSCGroup ;
 
-  void PlotStack( string , string , string , bool ,
-                  vector<TH1F*>  , vector<TH1F*>  , vector<TH1F*>  ,
-                  vector<string> , vector<string> , vector<string> ) ;
+  void PlotStack( string  , string  , string  , bool  ,
+                  vector<TH1F*>&  , vector<TH1F*>&  , vector<TH1F*>&  ,
+                  vector<string>  , vector<string>  , vector<string>  ) ;
 
-  void PrintYields ( string , string , vector<string> ,
-                     vector<TH1F*>  , vector<TH1F*>  , vector<TH1F*>  ,
-                     vector<string> , vector<string> , vector<string> ) ;
+  void PrintYields ( string  , string  , vector<string>  ,
+                     vector<TH1F*>&  , vector<TH1F*>&  , vector<TH1F*>&  ,
+                     vector<string>  , vector<string>  , vector<string>  ) ;
 
   public:
 

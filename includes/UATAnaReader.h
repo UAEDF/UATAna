@@ -32,11 +32,11 @@ class UATAnaReader {
   vector<TH1F*> PlotSCGroup ;
 
 
-  void FillCutFlow  ( UATAnaConfig& , TString , int , Double_t ) ;
-  void FillScanFlow ( UATAnaConfig& , string ScanName ,  TString , int , Double_t ) ;
+  void FillCutFlow  ( UATAnaConfig& , string& , int& , Double_t& ) ;
+  void FillScanFlow ( UATAnaConfig& , string& , string& , int& , Double_t& ) ;
 
-  void FillPlotCC   ( UATAnaConfig& , string , Double_t );
-  void FillPlotSC   ( UATAnaConfig& , string , Double_t );  
+  void FillPlotCC   ( UATAnaConfig& , string& , Double_t& );
+  void FillPlotSC   ( UATAnaConfig& , string& , Double_t& );  
 
   public:
 

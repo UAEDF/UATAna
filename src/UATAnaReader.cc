@@ -201,7 +201,7 @@ void UATAnaReader::Analyze( UATAnaConfig& Cfg ) {
 
 //----------------------------------- FillCutFlow() ----------------------------------
 
-void UATAnaReader::FillCutFlow ( UATAnaConfig& Cfg , TString NickName , int iCC , Double_t weight ) {
+void UATAnaReader::FillCutFlow ( UATAnaConfig& Cfg , string& NickName , int& iCC , Double_t& weight ) {
   // Individuals
   int iCCHist = 0 ; 
   for ( vector<InputData_t>::iterator itD = (Cfg.GetInputData())->begin() ; itD != (Cfg.GetInputData())->end() ; ++itD , ++iCCHist ) {
@@ -220,7 +220,7 @@ void UATAnaReader::FillCutFlow ( UATAnaConfig& Cfg , TString NickName , int iCC 
 
 //----------------------------------- FillCutFlow() ----------------------------------
 
-void UATAnaReader::FillScanFlow ( UATAnaConfig& Cfg , string ScanName, TString NickName , int iCC , Double_t weight ) {
+void UATAnaReader::FillScanFlow ( UATAnaConfig& Cfg , string& ScanName , string& NickName , int& iCC , Double_t& weight ) {
   // Individuals
   for ( vector<ScanFlow_t>::iterator iSF = SCflow.begin() ; iSF != SCflow.end() ; ++iSF ) { 
     if ( iSF->ScanName == ScanName ) {
@@ -247,7 +247,7 @@ void UATAnaReader::FillScanFlow ( UATAnaConfig& Cfg , string ScanName, TString N
 
 //----------------------------------- FillPlotCC() ------------------------------------
 
-void UATAnaReader::FillPlotCC ( UATAnaConfig& Cfg , string NickName , Double_t weight ) {
+void UATAnaReader::FillPlotCC ( UATAnaConfig& Cfg , string& NickName , Double_t& weight ) {
 
   int iH  = 0 ;
   int iHG = 0 ;
@@ -285,7 +285,7 @@ void UATAnaReader::FillPlotCC ( UATAnaConfig& Cfg , string NickName , Double_t w
 
 //----------------------------------- FillPlotSC() ------------------------------------
 
-void UATAnaReader::FillPlotSC ( UATAnaConfig& Cfg , string NickName , Double_t weight  ) {
+void UATAnaReader::FillPlotSC ( UATAnaConfig& Cfg , string& NickName , Double_t& weight  ) {
 
   int iH  = 0 ;
   int iHG = 0 ;

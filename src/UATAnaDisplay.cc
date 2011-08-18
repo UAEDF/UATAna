@@ -25,7 +25,6 @@ void UATAnaDisplay::Init ( UATAnaConfig& Cfg ) {
   vector<TH1F*> PlotCCGroup_ ;
   vector<TH1F*> PlotSCGroup_ ;
 
-
   // CommonCuts cutflow histograms
   
   File->cd();
@@ -205,9 +204,9 @@ void UATAnaDisplay::Init ( UATAnaConfig& Cfg ) {
 
 //----------------------------------- PlotStack() -------------------------------------
 
-void UATAnaDisplay::PlotStack( string DataSet , string CutGroup , string CutLevel , bool kLogY ,
-                               vector<TH1F*>  vData  , vector<TH1F*>  vSignal  , vector<TH1F*>  vBkgd ,
-                               vector<string> vLData , vector<string> vLSignal , vector<string> vLBkgd ) {
+void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutLevel , bool  kLogY ,
+                               vector<TH1F*>&  vData  , vector<TH1F*>&  vSignal  , vector<TH1F*>&  vBkgd ,
+                               vector<string>  vLData , vector<string>  vLSignal , vector<string>  vLBkgd ) {
 
   TString  CanName = DataSet+"_"+CutGroup ;
   if ( CutLevel != "NONE" ) CanName += "_"+CutLevel ;
@@ -297,9 +296,9 @@ void UATAnaDisplay::PlotStack( string DataSet , string CutGroup , string CutLeve
 
 //----------------------------------- PrintYields() -------------------------------------
 
-void UATAnaDisplay::PrintYields( string DataSet , string CutGroup , vector<string> Cuts , 
-                                 vector<TH1F*>  vData  , vector<TH1F*>  vSignal  , vector<TH1F*>  vBkgd ,
-                                 vector<string> vLData , vector<string> vLSignal , vector<string> vLBkgd ) {
+void UATAnaDisplay::PrintYields( string  DataSet , string  CutGroup , vector<string>  Cuts , 
+                                 vector<TH1F*>&  vData  , vector<TH1F*>&  vSignal  , vector<TH1F*>&  vBkgd ,
+                                 vector<string>  vLData , vector<string>  vLSignal , vector<string>  vLBkgd ) {
 
    // Data & Backgrounds
 
@@ -599,48 +598,79 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg ) {
  
       } 
 
-    } 
+    } else { 
+      string ScanName = ((Cfg.GetScanCuts())->at(iGroup-1)).ScanName ;
+      CutGroup = ScanName ;   
+
+      for ( vector<CtrlPlot_t>::iterator itCP = (Cfg.GetCtrlPlots())->begin() ; itCP != (Cfg.GetCtrlPlots())->end() ; ++itCP ) {
+        for ( vector<string>::iterator itCut = (itCP->SCNickName).begin() ; itCut != (itCP->SCNickName).end() ; ++itCut ) {
+          bool Found = false ;
+          for ( vector<string>::iterator itCuts = Cuts.begin() ; itCuts != Cuts.end() ; ++itCuts ) {
+            if ( *itCuts == *itCut ) Found = true ;    
+          }
+          if ( ! Found ) Cuts.push_back(*itCut) ; 
+        }
+      }  
+      int iCut = 0 ;
+      for ( vector<string>::iterator itCuts = Cuts.begin() ; itCuts != Cuts.end() ; ++itCuts , ++iCut ) cout << "  " << iCut << " = " << *itCuts << endl ;
+      cout << "--> Please select Cut Level: " ;
+      cin  >> iLevel;     
+      cout << endl ; 
+      CutLevel = Cuts.at(iLevel); 
 
 
-/*    
-    } else {  
-       kLogY = false ;
-       string ScanName = ((Cfg.GetScanCuts())->at(iGroup-1)).ScanName ;
-       CutGroup = ScanName ;   
-       for ( vector<TreeFormula_t>::iterator itCC  = (((Cfg.GetScanCuts())->at(iGroup-1)).Cuts).begin() ;
-                                             itCC != (((Cfg.GetScanCuts())->at(iGroup-1)).Cuts).end()   ; ++itCC ) Cuts.push_back(itCC->NickName); 
-       if (  iData == 0 ) {
-         DataSet = "AllDataSets" ;
-         int iH = 0 ;
-         for ( vector<ScanFlow_t>::iterator iSF = SCflow.begin() ; iSF != SCflow.end() ; ++iSF ) {
-           if ( iSF->ScanName == ScanName ) {
-             for ( vector<InputData_t>::iterator itD = (Cfg.GetInputData())->begin() ; itD != (Cfg.GetInputData())->end() ; ++itD , ++iH) {
-               if ( itD->Data  ) { vData.push_back   ( (TH1F*) ((iSF->CutFlow).at(iH))->Clone() ) ; vLData  .push_back(itD->NickName) ; }
-               if ( itD->Signal) { vSignal.push_back ( (TH1F*) ((iSF->CutFlow).at(iH))->Clone() ) ; vLSignal.push_back(itD->NickName) ; }
-               if ( itD->Bkgd  ) { vBkgd.push_back   ( (TH1F*) ((iSF->CutFlow).at(iH))->Clone() ) ; vLBkgd  .push_back(itD->NickName) ; }
-             }
-           }
-         }
-       } else {
-         string GroupName = ((Cfg.GetDataGroups())->at(iData-1)).GroupName ;
-         int iH = 0 ;
-         DataSet  = GroupName ;
-         for ( vector<ScanFlow_t>::iterator iSF = SCflowGroup.begin() ; iSF != SCflowGroup.end() ; ++iSF ) {
-           if ( iSF->ScanName == ScanName ) {
-             for ( vector<DataGroup_t>::iterator itDG = (Cfg.GetDataGroups())->begin() ; itDG !=  (Cfg.GetDataGroups())->end() ; ++itDG ) {
-               for ( vector<BaseGroup_t>::iterator itBG = (itDG->Members).begin() ; itBG != (itDG->Members).end() ; ++itBG , ++iH ) {
-                 if ( itDG->GroupName == GroupName ) {
-                   if ( itBG->Data  ) { vData.push_back   ( (TH1F*) ((iSF->CutFlow).at(iH))->Clone() ) ; vLData  .push_back(itBG->BaseName) ; }
-                   if ( itBG->Signal) { vSignal.push_back ( (TH1F*) ((iSF->CutFlow).at(iH))->Clone() ) ; vLSignal.push_back(itBG->BaseName) ; }
-                   if ( itBG->Bkgd  ) { vBkgd.push_back   ( (TH1F*) ((iSF->CutFlow).at(iH))->Clone() ) ; vLBkgd  .push_back(itBG->BaseName) ; }
-                 }
-               }
-             } 
-           }
-         }
-       } 
+      if (  iData == 0 ) {
+        DataSet = "AllDataSets" ;
+
+        int iH = 0 ;
+        for ( vector<CtrlPlot_t>::iterator itCP = (Cfg.GetCtrlPlots())->begin() ; itCP != (Cfg.GetCtrlPlots())->end() ; ++itCP ) {
+          // clean
+          for ( vector<TH1F*>::iterator itH = vData  .begin() ; itH != vData  .end() ; ++itH ) delete (*itH) ; vData  .clear() ; vLData  .clear() ; 
+          for ( vector<TH1F*>::iterator itH = vSignal.begin() ; itH != vSignal.end() ; ++itH ) delete (*itH) ; vSignal.clear() ; vLSignal.clear() ;
+          for ( vector<TH1F*>::iterator itH = vBkgd  .begin() ; itH != vBkgd  .end() ; ++itH ) delete (*itH) ; vBkgd  .clear() ; vLBkgd  .clear() ; 
+          // Fill next histogram set
+          for ( vector<string>::iterator itCC = (itCP->SCNickName).begin() ; itCC != (itCP->SCNickName).end() ; ++itCC ) {
+            for ( vector<InputData_t>::iterator itD = (Cfg.GetInputData())->begin() ; itD != (Cfg.GetInputData())->end() ; ++itD , ++iH ) {
+              if (  *itCC ==  CutLevel  ) {
+                 if ( itD->Data  ) { vData.push_back   ( (TH1F*) (PlotSC.at(iH))->Clone() ) ; vLData  .push_back(itD->NickName) ; }
+                 if ( itD->Signal) { vSignal.push_back ( (TH1F*) (PlotSC.at(iH))->Clone() ) ; vLSignal.push_back(itD->NickName) ; }
+                 if ( itD->Bkgd  ) { vBkgd.push_back   ( (TH1F*) (PlotSC.at(iH))->Clone() ) ; vLBkgd  .push_back(itD->NickName) ; }
+              }
+            }  
+          }  
+          PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd ) ;
+        }
+
+      } else {
+        string GroupName = ((Cfg.GetDataGroups())->at(iData-1)).GroupName ;
+        DataSet = GroupName ;
+
+        int iH = 0 ;
+        for ( vector<CtrlPlot_t>::iterator itCP = (Cfg.GetCtrlPlots())->begin() ; itCP != (Cfg.GetCtrlPlots())->end() ; ++itCP ) {
+          // clean
+          for ( vector<TH1F*>::iterator itH = vData  .begin() ; itH != vData  .end() ; ++itH ) delete (*itH) ; vData  .clear() ; vLData  .clear() ; 
+          for ( vector<TH1F*>::iterator itH = vSignal.begin() ; itH != vSignal.end() ; ++itH ) delete (*itH) ; vSignal.clear() ; vLSignal.clear() ;
+          for ( vector<TH1F*>::iterator itH = vBkgd  .begin() ; itH != vBkgd  .end() ; ++itH ) delete (*itH) ; vBkgd  .clear() ; vLBkgd  .clear() ; 
+          // Fill next histogram set
+          for ( vector<string>::iterator itCC = (itCP->SCNickName).begin() ; itCC != (itCP->SCNickName).end() ; ++itCC ) {
+            for ( vector<DataGroup_t>::iterator itDG = (Cfg.GetDataGroups())->begin() ; itDG !=  (Cfg.GetDataGroups())->end() ; ++itDG ) {
+              for ( vector<BaseGroup_t>::iterator itBG = (itDG->Members).begin() ; itBG != (itDG->Members).end() ; ++itBG , ++iH ) {
+                if ( ( *itCC ==  CutLevel ) && ( itDG->GroupName == GroupName ) ) {
+                  if ( itBG->Data  ) { vData.push_back   ( (TH1F*) (PlotSCGroup.at(iH))->Clone() ) ; vLData  .push_back(itBG->BaseName) ; }
+                  if ( itBG->Signal) { vSignal.push_back ( (TH1F*) (PlotSCGroup.at(iH))->Clone() ) ; vLSignal.push_back(itBG->BaseName) ; }
+                  if ( itBG->Bkgd  ) { vBkgd.push_back   ( (TH1F*) (PlotSCGroup.at(iH))->Clone() ) ; vLBkgd  .push_back(itBG->BaseName) ; }
+                }
+              }
+            }
+          }
+          PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd ) ;
+        }
+   
+
+      } 
+
+
     }
-*/  
 
     cout << "Next choice ? [0/1] : " ;
     cin >> iContinue ;     

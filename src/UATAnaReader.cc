@@ -3,7 +3,7 @@
 
 //----------------------------------- Init() ------------------------------------------
 
-void UATAnaReader::Init ( UATAnaConfig& Cfg ) {
+void UATAnaReader::Init ( UATAnaConfig& Cfg , bool& bWTree ) {
 
   TH1::SetDefaultSumw2(1);
 
@@ -73,11 +73,15 @@ void UATAnaReader::Init ( UATAnaConfig& Cfg ) {
     }
   }
 
+  // Output TTree
+  // if ( bWTree ) InitOutTree (Cfg);
+  
+
 }
 
 //----------------------------------- Analyze() ----------------------------------------
 
-void UATAnaReader::Analyze( UATAnaConfig& Cfg ) {
+void UATAnaReader::Analyze( UATAnaConfig& Cfg , bool& bWTree ) {
 
  // Loop on all tree -------------------------------------------------------
 
@@ -91,11 +95,41 @@ void UATAnaReader::Analyze( UATAnaConfig& Cfg ) {
    Tree = (TTree*) File->Get((itD->TreeName).c_str());
    Tree->SetBranchStatus("*",1);
 
+   // Duplicate TTree as needed
+
+   if ( bWTree ) {
+     for ( vector<OutTTree_t>::iterator itOTT = (Cfg.GetOutTTree())->begin() ; itOTT != (Cfg.GetOutTTree())->end() ; ++itOTT ) {
+       if ( itD->NickName == itOTT->DataName ) {
+         // Make file names 
+         (itOTT->OutNOne) = Cfg.GetOutDir() + "/" + Cfg.GetTAnaName() + "_" + itOTT->DataName + "_" + itOTT->CutName ;
+         if ( itOTT->Split ) {
+           (itOTT->OutNTwo) = (itOTT->OutNOne) + "_Sample2" + ".root" ;
+           (itOTT->OutNOne) += "_Sample1" ;
+         }
+         (itOTT->OutNOne) += ".root" ;
+         // Create Clone
+         (itOTT->OutFOne) = new TFile((itOTT->OutNOne).c_str(),"RECREATE");     
+         (itOTT->OutTOne) = Tree->CloneTree(0);
+         if ( itOTT->Split ) {
+           (itOTT->OutFTwo) = new TFile((itOTT->OutNTwo).c_str(),"RECREATE");     
+           (itOTT->OutTTwo) = Tree->CloneTree(0);
+         }
+       }
+     }
+
+     //string OT1FileName = 
+     //string tmpName = (itD->NickName) + ".tmp.root";
+     //TFile* tmpFile =  new TFile(tmpName.c_str(),"RECREATE"); 
+     //TTree* tmpTree = Tree->CloneTree(0);
+
+   }
+
    // ------------- Formulas -------------------
 
    // Create TreeWeight Formula
    (Cfg.GetTreeWeight())->MakFormula(Tree);  
-
+   // Create DataSetWght Formula
+   for ( vector<DataSetWght_t>::iterator itDSW = (Cfg.GetDataSetWghts())->begin() ; itDSW != (Cfg.GetDataSetWghts())->end() ; ++itDSW ) itDSW->MakFormula(Tree); 
    // Create CommonCuts Formula   
    for ( vector<TreeFormula_t>::iterator itCC = (Cfg.GetCommonCuts())->begin() ; itCC != (Cfg.GetCommonCuts())->end() ; ++itCC) itCC->MakFormula(Tree);
    // Create ScanCuts Formula
@@ -105,13 +139,6 @@ void UATAnaReader::Analyze( UATAnaConfig& Cfg ) {
    // Create CtrlPlots Formula
    for ( vector<CtrlPlot_t>::iterator itCP = (Cfg.GetCtrlPlots())->begin() ; itCP != (Cfg.GetCtrlPlots())->end() ; ++itCP) itCP->MakFormula(Tree);
 
-   // ------------- DataSetWeight --------------
-   Double_t DataSetWeight = 1.0 ;
-   for ( vector<DataSetWght_t>::iterator itDSW = (Cfg.GetDataSetWghts())->begin() ; itDSW != (Cfg.GetDataSetWghts())->end() ; ++itDSW ) { 
-     for ( vector<string>::iterator itDSN = (itDSW->DataSets).begin() ; itDSN != (itDSW->DataSets).end() ; ++itDSN ) {
-       if ( (*itDSN) == itD->NickName ) DataSetWeight *= itDSW->Weight ;
-     }
-   }
 
    // ------------- ExtEffTH2 ------------------
    for ( vector<ExtEffTH2_t>::iterator itEff = (Cfg.GetExtEffTH2())->begin() ; itEff != (Cfg.GetExtEffTH2())->end() ; ++itEff ) itEff->MakExtEffTH2(Tree);  
@@ -125,6 +152,8 @@ void UATAnaReader::Analyze( UATAnaConfig& Cfg ) {
 
      // Evaluate TreeWeight Formula
      (Cfg.GetTreeWeight())->EvaFormula();  
+     // Evaluate DataSetWght Formula
+     for ( vector<DataSetWght_t>::iterator itDSW = (Cfg.GetDataSetWghts())->begin() ; itDSW != (Cfg.GetDataSetWghts())->end() ; ++itDSW ) itDSW->EvaFormula();
      // Evaluate CommonCuts Formula   
      for ( vector<TreeFormula_t>::iterator itCC = (Cfg.GetCommonCuts())->begin() ; itCC != (Cfg.GetCommonCuts())->end() ; ++itCC) itCC->EvaFormula();
      // Evaluate ScanCuts Formula
@@ -133,10 +162,16 @@ void UATAnaReader::Analyze( UATAnaConfig& Cfg ) {
      }
      // Evaluate CtrlPlots Formula
      for ( vector<CtrlPlot_t>::iterator itCP = (Cfg.GetCtrlPlots())->begin() ; itCP != (Cfg.GetCtrlPlots())->end() ; ++itCP) itCP->EvaFormula();
-
      // Evaluate ExtEffTH2 
      for ( vector<ExtEffTH2_t>::iterator itEff = (Cfg.GetExtEffTH2())->begin() ; itEff != (Cfg.GetExtEffTH2())->end() ; ++itEff ) itEff->EvaExtEffTH2();  
 
+     // ------------- DataSetWeight --------------
+     Double_t DataSetWeight = 1.0 ;
+     for ( vector<DataSetWght_t>::iterator itDSW = (Cfg.GetDataSetWghts())->begin() ; itDSW != (Cfg.GetDataSetWghts())->end() ; ++itDSW ) { 
+       for ( vector<string>::iterator itDSN = (itDSW->DataSets).begin() ; itDSN != (itDSW->DataSets).end() ; ++itDSN ) {
+         if ( (*itDSN) == itD->NickName ) DataSetWeight *= itDSW->Result() ;
+       }
+     }
      // Compute Event Weight 
      Double_t Weight = DataSetWeight * (Cfg.GetTreeWeight())->Result() ;
      if ( ! itD->Data )  Weight *= Cfg.GetTargetLumi() / itD->Lumi ;
@@ -173,12 +208,63 @@ void UATAnaReader::Analyze( UATAnaConfig& Cfg ) {
      // Control Plots
      FillPlotCC( Cfg , itD->NickName , Weight );
      if (passCC) FillPlotSC( Cfg , itD->NickName , Weight );
-     
+
+     // Output TTree
+     if ( bWTree && Weight != 0 ) {
+       for ( vector<OutTTree_t>::iterator itOTT = (Cfg.GetOutTTree())->begin() ; itOTT != (Cfg.GetOutTTree())->end() ; ++itOTT ) {
+         if ( itD->NickName == itOTT->DataName ) {
+           bool passTCC = true ;
+           for ( vector<TreeFormula_t>::iterator itCC = (Cfg.GetCommonCuts())->begin() ; itCC != (Cfg.GetCommonCuts())->end() ; ++itCC ) {
+             if ( !passTCC ) continue; 
+             if ( itCC->Result() ) {
+               if ( itCC->NickName == itOTT->CutName ) {
+                 if   ( ! itOTT->Split ) (itOTT->OutTOne)->Fill();               
+                 else {
+                   if ( gRandom->Rndm() < itOTT->SplitFrac ) (itOTT->OutTOne)->Fill(); 
+                   else                                      (itOTT->OutTTwo)->Fill();    
+                 }
+               } 
+             } else {
+               passTCC = false ; 
+             } 
+           }
+
+         }
+       } 
+     }
+
+    //tmpTree->Fill();
+
+//    if ( bWTree ) FillOutTree ( Cfg , itD->NickName ) ;
 
    }
 
+   if ( bWTree ) {
+     for ( vector<OutTTree_t>::iterator itOTT = (Cfg.GetOutTTree())->begin() ; itOTT != (Cfg.GetOutTTree())->end() ; ++itOTT ) {
+       if ( itD->NickName == itOTT->DataName ) {
+         (itOTT->OutTOne)->AutoSave();
+         delete (itOTT->OutTOne);
+         (itOTT->OutFOne)->Close();
+         delete  (itOTT->OutFOne); 
+         if ( itOTT->Split ) {
+           (itOTT->OutTTwo)->AutoSave();
+           delete (itOTT->OutTTwo);
+           (itOTT->OutFTwo)->Close();
+           delete  (itOTT->OutFTwo); 
+         }
+       }
+     }
+   } 
+
+   //tmpTree->AutoSave();
+   //delete tmpTree;
+   //tmpFile->Close();
+   //delete tmpFile;
+
    // Delete TreeWeight Formula
    (Cfg.GetTreeWeight())->DelFormula();  
+   // Delete DataSetWght Formula
+   for ( vector<DataSetWght_t>::iterator itDSW = (Cfg.GetDataSetWghts())->begin() ; itDSW != (Cfg.GetDataSetWghts())->end() ; ++itDSW ) itDSW->DelFormula();
    // Delete CommonCuts Formula   
    for ( vector<TreeFormula_t>::iterator iCC = (Cfg.GetCommonCuts())->begin() ; iCC != (Cfg.GetCommonCuts())->end() ; ++iCC) iCC->DelFormula();
    // Delete ScanCuts Formula
@@ -326,9 +412,10 @@ void UATAnaReader::FillPlotSC ( UATAnaConfig& Cfg , string& NickName , Double_t&
 
 //----------------------------------- End() ------------------------------------------
 
-void UATAnaReader::End  ( UATAnaConfig& Cfg ) {
+void UATAnaReader::End  ( UATAnaConfig& Cfg , bool& bWTree ) {
 
-  File = new TFile("out.root","RECREATE");  
+  string fileName = Cfg.GetOutDir() + "/" + Cfg.GetTAnaName()+".root";
+  File = new TFile(fileName.c_str(),"RECREATE");  
   
   // CommonCuts cutflow histograms
   File->cd();  
@@ -454,6 +541,110 @@ void UATAnaReader::End  ( UATAnaConfig& Cfg ) {
   File->Close();
   delete File;
 
+  //if ( bWTree ) WritOutTree ( Cfg ) ;
+
+}
+
+/*
+
+//----------------------------------- InitOutTree() ------------------------------------------
+
+void UATAnaReader::InitOutTree ( UATAnaConfig& Cfg ) {
+
+    cout << "[UATAnaReader::Init] Creating output TTree" << endl;
+    for ( vector<OutTTree_t>::iterator itOTT = (Cfg.GetOutTTree())->begin() ; itOTT != (Cfg.GetOutTTree())->end() ; ++itOTT ) {
+      if ( ! itOTT->DataMode ) {
+        cout << "... " << itOTT->DataName << endl ;
+        for ( vector<InputData_t>::iterator itD = (Cfg.GetInputData())->begin() ; itD != (Cfg.GetInputData())->end() ; ++itD) {
+          if ( itD->NickName == itOTT->DataName ) {
+            File = new TFile((itD->FileName).c_str(),"READ");  
+            Tree = (TTree*) File->Get((itD->TreeName).c_str());
+            Tree->SetBranchStatus("*",1);
+            gROOT->cd();
+            itOTT->OutTOne = Tree->CloneTree(0);
+            (itOTT->OutTOne)->SetName((itOTT->TreeName).c_str());
+            if ( itOTT->Split ) {
+              itOTT->OutTTwo = Tree->CloneTree(0);
+              (itOTT->OutTTwo)->SetName((itOTT->TreeName).c_str());
+            }
+            delete Tree  ;
+            File->Close();
+            delete File  ;   
+          }
+        } 
+      } else {
+        cout << "... " << itOTT->DataGroup << " : " << itOTT->DataName << endl ;
+        for ( vector<DataGroup_t>::iterator itDG = (Cfg.GetDataGroups())->begin() ; itDG !=  (Cfg.GetDataGroups())->end() ; ++itDG ) {
+          for ( vector<BaseGroup_t>::iterator itBG = (itDG->Members).begin() ; itBG != (itDG->Members).end() ; ++itBG  ) {
+            if ( itBG->BaseName  == itOTT->DataName ) {
+              for ( vector<InputData_t>::iterator itD = (Cfg.GetInputData())->begin() ; itD != (Cfg.GetInputData())->end() ; ++itD) {
+                if ( itD->NickName == (itBG->Members).at(0) ) {
+                   File = new TFile((itD->FileName).c_str(),"READ");  
+                   Tree = (TTree*) File->Get((itD->TreeName).c_str());
+                   Tree->SetBranchStatus("*",1);
+                   gROOT->cd();
+                   itOTT->OutTOne = Tree->CloneTree(0);
+                   (itOTT->OutTOne)->SetName((itOTT->TreeName).c_str());
+                   if ( itOTT->Split ) {
+                     itOTT->OutTTwo = Tree->CloneTree(0);
+                     (itOTT->OutTTwo)->SetName((itOTT->TreeName).c_str());
+                   }
+                   delete Tree  ;
+                   File->Close();
+                   delete File  ;   
+                }  
+              }
+            }
+          }
+        }
+      }
+    }
+
+  return ;
+
 }
 
 
+
+//----------------------------------- FillOutTree() ------------------------------------------
+
+void UATAnaReader::FillOutTree ( UATAnaConfig& Cfg , string& NickName ) {
+
+  for ( vector<OutTTree_t>::iterator itOTT = (Cfg.GetOutTTree())->begin() ; itOTT != (Cfg.GetOutTTree())->end() ; ++itOTT ) {
+    if ( ! itOTT->DataMode ) {
+      if ( NickName == itOTT->DataName ) {
+        (itOTT->OutTOne)->Fill(); 
+      }
+    }
+  }   
+
+  return;
+}
+
+//----------------------------------- WritOutTree() ------------------------------------------
+
+void UATAnaReader::WritOutTree ( UATAnaConfig& Cfg ) {
+  
+  for ( vector<OutTTree_t>::iterator itOTT = (Cfg.GetOutTTree())->begin() ; itOTT != (Cfg.GetOutTTree())->end() ; ++itOTT ) {
+
+    string fileName = Cfg.GetTAnaName() + "__" + itOTT->TreeName + "__" ;
+    if ( itOTT->DataMode) fileName += itOTT->DataGroup + "__" ;  
+                          fileName += itOTT->DataName  + "__" ;
+                          fileName += itOTT->CutName   ;
+                          fileName += ".root" ;
+    if (itOTT->OutTOne) {
+      TFile* OTTFile = new TFile(fileName.c_str(),"RECREATE");
+      OTTFile->cd();  
+      (itOTT->OutTOne)->Write();
+      OTTFile->Close();
+      delete OTTFile;
+      delete (itOTT->OutTOne);
+    } else {
+      cout << "[UATAnaReader::WritOutTree] Missing TTree : " << fileName << endl;
+    }
+  }
+
+  return;
+}
+
+*/

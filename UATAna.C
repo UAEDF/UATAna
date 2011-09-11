@@ -5,6 +5,7 @@
 
 /*
    R = Read Tree and Fill all histos
+   T = As 'R' but also write preselected tree 
    F = Plot CutFlow Histograms
    Y = Print Yields
    C = Plot Control Plots
@@ -18,11 +19,14 @@ void UATAna(TString Cfg = "Config.cfg" , TString Steps = "R"){
   Config.ReadCfg(Cfg);
 //  Config.Print();
 
-  if ( Steps.Contains ('R') ) {
+  if (    Steps.Contains ('R') 
+       || Steps.Contains ('T') ) {
+    bool bWTree = false ;
+    if ( Steps.Contains ('T') ) bWTree = true ;
     UATAnaReader Reader;
-    Reader.Init   (Config);
-    Reader.Analyze(Config);
-    Reader.End    (Config);
+    Reader.Init   (Config , bWTree );
+    Reader.Analyze(Config , bWTree );
+    Reader.End    (Config , bWTree );
   }
   
   if (    Steps.Contains ('F')

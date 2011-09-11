@@ -112,6 +112,8 @@ Float_t ExtEffTH2_t::Result( string& DataSet )  {
 
 void UATAnaConfig::Reset(){
 
+  TAnaName = "MyTAna" ;
+
   InputData.clear();
 
   for ( vector<DataGroup_t>::iterator iDG = DataGroups.begin() ; iDG !=  DataGroups.end() ; ++iDG ) {
@@ -153,6 +155,12 @@ void UATAnaConfig::ReadCfg(TString CfgName) {
         if(sub.size()>0) Elements.push_back(sub);
     } while (iss);
     if ( ! (Elements.size() > 0) ) continue;
+
+    // TAnaName
+    if ( Elements.at(0) == "TAnaName" ) TAnaName = Elements.at(1);
+
+    // OutDir
+    if ( Elements.at(0) == "OutDir" ) OutDir = Elements.at(1);
 
     // InputData
     if ( Elements.at(0) == "InputData" ) {
@@ -274,11 +282,26 @@ void UATAnaConfig::ReadCfg(TString CfgName) {
        }
     }
 
+    // OutTTree
+    if ( Elements.at(0) == "OutTTree"  ) {
+      OutTTree_t OTT ;
+      OTT.TreeName  = Elements.at(1) ;
+      OTT.Split     = atoi(Elements.at(2).c_str()) ; 
+      OTT.SplitFrac = atof(Elements.at(3).c_str()) ; 
+      OTT.CutName   = Elements.at(4) ;
+      vector<string> OTTDL = UATokenize( Elements.at(5) , ':' );
+      for (vector<string>::iterator iOTTD = OTTDL.begin() ; iOTTD != OTTDL.end() ; ++iOTTD ) {
+        OTT.DataName = *iOTTD ; 
+        OutTTree.push_back ( OTT ) ;
+      }
+    }
+
     // DataSetWghts
     if ( Elements.at(0) == "DataSetWght" ) {
       DataSetWght_t DSWght ;
-      DSWght.NickName = Elements.at(1) ;
-      DSWght.Weight   = atof(Elements.at(2).c_str()) ; 
+      DSWght.NickName   = Elements.at(1) ;
+      DSWght.Expression = Elements.at(2) ;
+      //DSWght.Weight   = atof(Elements.at(2).c_str()) ; 
       for ( int iMember = 3 ; iMember < (signed)Elements.size() ; ++iMember ) (DSWght.DataSets).push_back(Elements.at(iMember));
       DataSetWghts.push_back ( DSWght ); 
     }
@@ -338,6 +361,13 @@ void UATAnaConfig::ReadCfg(TString CfgName) {
        }
     }
 
+
+    // CommonSign
+    if ( Elements.at(0) == "CommonSign" ) {
+      CommonSign.clear();
+      CommonSign = UATokenize( Elements.at(1) , ':' );
+    }
+
     // ScanCuts
     if ( Elements.at(0) == "ScanCut" ) {
       TreeFormula_t Cut;
@@ -357,6 +387,17 @@ void UATAnaConfig::ReadCfg(TString CfgName) {
         ScanCut.ScanName = ScanName ;
         (ScanCut.Cuts).push_back(Cut); 
         ScanCuts.push_back(ScanCut); 
+      }
+    }
+
+    // ScanSign
+    if ( Elements.at(0) == "ScanSign" ) {
+      string ScanName = Elements.at(1);
+      vector<string> DataName = UATokenize( Elements.at(2) , ':' );
+      for ( vector<ScanCut_t>::iterator itSC = ScanCuts.begin() ; itSC !=  ScanCuts.end() ; ++itSC ) {
+        if ( itSC->ScanName == ScanName ) {
+          for ( vector<string>::iterator itN = DataName.begin() ; itN != DataName.end() ; ++itN ) (itSC->SignList).push_back(*itN);
+        }
       }
     }
 

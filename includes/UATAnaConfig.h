@@ -28,12 +28,6 @@ class InputData_t {
   Float_t ScaleFac  ;
 };
 
-class DataSetWght_t {
-  public:
-  string         NickName ;
-  Float_t        Weight   ; 
-  vector<string> DataSets ; 
-};
 
 class BaseGroup_t {
   public:
@@ -55,6 +49,25 @@ class DataGroup_t {
   vector<BaseGroup_t>  Members;
 };
 
+class OutTTree_t    {
+  public:
+  OutTTree_t(){;}
+  virtual ~OutTTree_t(){;}
+
+  string    TreeName  ;
+  Bool_t    Split     ;
+  Float_t   SplitFrac ;
+  string    CutName   ;
+  string    DataName  ; 
+
+  string    OutNOne  ;
+  string    OutNTwo  ;  
+  TFile*    OutFOne  ;
+  TFile*    OutFTwo  ;  
+  TTree*    OutTOne  ;
+  TTree*    OutTTwo  ; 
+};
+
 class TreeFormula_t {
   public:
   TreeFormula_t(){ bEvaluated = false ;}
@@ -72,13 +85,23 @@ class TreeFormula_t {
   Float_t Result()         ;
 };
 
+class DataSetWght_t : public TreeFormula_t {
+  public:
+//  string         NickName ;
+//  Float_t        Weight   ; 
+  vector<string> DataSets ; 
+};
+
 class ScanCut_t {
   public:
   ScanCut_t(){;}
   virtual ~ScanCut_t(){;}
   string                 ScanName ;
   vector<TreeFormula_t>  Cuts     ;
+  vector<string>         SignList ;
 };
+
+
 
 class ScanFlow_t {
   public:
@@ -122,8 +145,13 @@ class UATAnaConfig {
 
   private:
 
-  vector<InputData_t>    InputData    ;
-  vector<DataGroup_t>    DataGroups   ;
+  string                 TAnaName   ;  
+  string                 OutDir     ;
+
+  vector<InputData_t>    InputData  ;
+  vector<DataGroup_t>    DataGroups ;
+
+  vector<OutTTree_t>     OutTTree   ;
 
   vector<DataSetWght_t>  DataSetWghts ;
   TreeFormula_t          TreeWeight ; 
@@ -131,6 +159,8 @@ class UATAnaConfig {
   Float_t                TargetLumi ;
 
   vector<TreeFormula_t>  CommonCuts ;  
+  vector<string>         CommonSign ;  
+
   vector<ScanCut_t>      ScanCuts   ;
 
   vector<CtrlPlot_t>     CtrlPlots  ;
@@ -145,15 +175,20 @@ class UATAnaConfig {
   void Print();
 
   // Getters:
+  string                  GetTAnaName()       { return TAnaName      ; } 
+  string                  GetOutDir()         { return OutDir        ; } 
   vector<InputData_t>*    GetInputData()      { return &InputData    ; }
   vector<DataGroup_t>*    GetDataGroups()     { return &DataGroups   ; }
+  vector<OutTTree_t>*     GetOutTTree()       { return &OutTTree     ; } 
   vector<DataSetWght_t>*  GetDataSetWghts()   { return &DataSetWghts ; }
   TreeFormula_t*          GetTreeWeight()     { return &TreeWeight   ; }
   vector<ExtEffTH2_t>*    GetExtEffTH2()      { return &ExtEffTH2    ; }
   Float_t                 GetTargetLumi()     { return TargetLumi    ; }           
   vector<TreeFormula_t>*  GetCommonCuts()     { return &CommonCuts   ; }
+  vector<string>*         GetCommonSign()     { return &CommonSign   ; }
   vector<ScanCut_t>*      GetScanCuts()       { return &ScanCuts     ; }
   vector<CtrlPlot_t>*     GetCtrlPlots()      { return &CtrlPlots    ; }
+
 
 };
 

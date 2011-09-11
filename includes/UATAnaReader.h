@@ -8,6 +8,7 @@
 #include <TFile.h>
 #include <TTree.h>
 #include <TH1F.h>
+#include <TRandom.h>
 
 #include <string>
 #include <vector>
@@ -38,14 +39,18 @@ class UATAnaReader {
   void FillPlotCC   ( UATAnaConfig& , string& , Double_t& );
   void FillPlotSC   ( UATAnaConfig& , string& , Double_t& );  
 
+//  void InitOutTree  ( UATAnaConfig& ) ;
+//  void FillOutTree  ( UATAnaConfig& , string& ) ;
+//  void WritOutTree  ( UATAnaConfig& ) ;
+
   public:
 
   UATAnaReader(){ }
   virtual ~UATAnaReader(){ }
 
-  void Init   ( UATAnaConfig& );
-  void Analyze( UATAnaConfig& );
-  void End    ( UATAnaConfig& );
+  void Init   ( UATAnaConfig& , bool& );
+  void Analyze( UATAnaConfig& , bool& );
+  void End    ( UATAnaConfig& , bool& );
 
 };
 

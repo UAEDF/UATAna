@@ -9,6 +9,7 @@
    F = Plot CutFlow Histograms
    Y = Print Yields
    C = Plot Control Plots
+   L = Prepare Limit Input Cards
 */
 
 void UATAna(TString Cfg = "Config.cfg" , TString Steps = "R"){
@@ -31,6 +32,7 @@ void UATAna(TString Cfg = "Config.cfg" , TString Steps = "R"){
   
   if (    Steps.Contains ('F')
        || Steps.Contains ('Y')
+       || Steps.Contains ('L')
        || Steps.Contains ('C') ) {
 
     UATAnaDisplay Display;
@@ -39,6 +41,7 @@ void UATAna(TString Cfg = "Config.cfg" , TString Steps = "R"){
     if ( Steps.Contains ('F') ) Display.Yields(Config,1);
     if ( Steps.Contains ('Y') ) Display.Yields(Config,0);
     if ( Steps.Contains ('C') ) Display.CPlot (Config);
+    if ( Steps.Contains ('L') ) Display.LimitCard (Config);
 
   }
 

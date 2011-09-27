@@ -415,6 +415,18 @@ void UATAnaConfig::ReadCfg(TString CfgName) {
       CtrlPlots.push_back( CtrlPlot );    
     } 
 
+    // Sytematics
+    if ( Elements.at(0) == "Systematic" ) {
+      Systematic_t Syst ;
+      Syst.systName = Elements.at(1) ;
+      Syst.systType = Elements.at(2) ;
+      Syst.systVal  = atof((Elements.at(3)).c_str()) ;
+      vector<string> Member = UATokenize( Elements.at(4) , ':' );
+      for ( int iM = 0 ; iM < (signed) Member.size() ; ++iM ) (Syst.systMember).push_back(Member.at(iM)) ;
+      Systematic.push_back(Syst);
+    }
+
+
   } 
 
   return;

@@ -141,6 +141,14 @@ class ExtEffTH2_t   {
   Float_t       Result_    ; 
 };
 
+class Systematic_t {
+  public:
+  string systName ;
+  string systType ;
+  float  systVal  ;
+  vector <string> systMember ;
+};
+
 class UATAnaConfig {
 
   private:
@@ -164,6 +172,8 @@ class UATAnaConfig {
   vector<ScanCut_t>      ScanCuts   ;
 
   vector<CtrlPlot_t>     CtrlPlots  ;
+
+  vector<Systematic_t> Systematic;
  
   public:
 
@@ -188,6 +198,7 @@ class UATAnaConfig {
   vector<string>*         GetCommonSign()     { return &CommonSign   ; }
   vector<ScanCut_t>*      GetScanCuts()       { return &ScanCuts     ; }
   vector<CtrlPlot_t>*     GetCtrlPlots()      { return &CtrlPlots    ; }
+  vector<Systematic_t>*  GetSystematic()       { return &Systematic ; }
 
 
 };

@@ -42,10 +42,10 @@ class UATAnaDisplay {
   UATAnaDisplay(){;}
   virtual ~UATAnaDisplay(){;}
 
-  void Init   ( UATAnaConfig& );
-  void Yields ( UATAnaConfig& , bool );
-  void CPlot  ( UATAnaConfig& );
-  
+  void Init     ( UATAnaConfig& );
+  void Yields   ( UATAnaConfig& , bool );
+  void CPlot    ( UATAnaConfig& );
+  void LimitCard( UATAnaConfig&  ); 
 
 };
 

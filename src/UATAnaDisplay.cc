@@ -759,3 +759,179 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg ) {
   return;
 }
 
+// --------------------------- LimitCard ()
+
+void UATAnaDisplay::LimitCard ( UATAnaConfig& Cfg ) {
+
+  string LimitCardName ;
+  Double_t Data = 0  ;
+  Double_t eStatData = 0  ;
+  vector<Double_t>  Signal ;
+  vector<Double_t>  eStatSignal ;
+  vector<Double_t>  Background ;
+  vector<Double_t>  eStatBkgd ;
+  vector<string> Proc;
+
+  cout << "[UATAnaDisplay::LimitCard] nGroup = " << (Cfg.GetDataGroups())->size() << " nScan = " << (Cfg.GetScanCuts())->size() << endl ; 
+
+  // Loop on DataGroup (-1:All InputData)
+  for ( int iDG = -1 ; iDG < (signed) (Cfg.GetDataGroups())->size() ; ++iDG ) {  
+    // Loop on ScanCut (-1:CommonCuts)
+    for ( int iSC = -1  ; iSC < (signed) (Cfg.GetScanCuts())->size() ; ++iSC ) {  
+  
+      Data = 0  ;
+      eStatData = 0  ; 
+      Proc.clear();
+      Signal.clear();
+      eStatSignal.clear();
+      Background.clear();
+      eStatBkgd.clear();
+
+      if ( iDG == -1 ) {
+        if ( iSC == -1 ) {
+          // Data + Signal
+          int iH = 0 ;
+          for ( vector<InputData_t>::iterator itD = (Cfg.GetInputData())->begin() ; itD != (Cfg.GetInputData())->end() ; ++itD , ++iH ) { 
+            if ( itD->Data  ) { 
+              Data       += (CCflow.at(iH))->GetBinContent((CCflow.at(iH))->GetNbinsX()) ;
+              eStatData  += pow((CCflow.at(iH))->GetBinError((CCflow.at(iH))->GetNbinsX()),2) ; 
+            }
+            if ( itD->Signal) {
+              bool iSAssoc = false ;
+              if (  (Cfg.GetCommonSign())->size() != 0 ) {
+                for ( vector<string>::iterator itSL  = (Cfg.GetCommonSign())->begin() ; itSL != (Cfg.GetCommonSign())->end() ; ++itSL ) {
+                  if ( itD->NickName == (*itSL) ) {iSAssoc = true;}
+                }
+              } else {iSAssoc = true;}
+              if (iSAssoc) {  
+                 Signal     .push_back( (CCflow.at(iH))->GetBinContent((CCflow.at(iH))->GetNbinsX()) ); 
+                 eStatSignal.push_back( (CCflow.at(iH))->GetBinError((CCflow.at(iH))->GetNbinsX())   );
+                 Proc.push_back( itD->NickName) ;
+               }
+            }
+          }
+          eStatData = sqrt(eStatData);
+          // Background
+          iH = 0 ; 
+          for ( vector<InputData_t>::iterator itD = (Cfg.GetInputData())->begin() ; itD != (Cfg.GetInputData())->end() ; ++itD , ++iH ) {
+            if ( itD->Bkgd  ) {
+               Background.push_back( (CCflow.at(iH))->GetBinContent((CCflow.at(iH))->GetNbinsX()) ); 
+               eStatBkgd .push_back( (CCflow.at(iH))->GetBinError((CCflow.at(iH))->GetNbinsX()) ); 
+               Proc.push_back( itD->NickName) ;
+            }
+          }
+        } else {
+          // Data + Signal
+          int iH = 0 ;
+          for ( vector<InputData_t>::iterator itD = (Cfg.GetInputData())->begin() ; itD != (Cfg.GetInputData())->end() ; ++itD , ++iH) {
+            if ( itD->Data  ) { 
+               Data      +=      (((SCflow.at(iSC)).CutFlow).at(iH))->GetBinContent((((SCflow.at(iSC)).CutFlow).at(iH))->GetNbinsX()) ;
+               eStatData += pow( (((SCflow.at(iSC)).CutFlow).at(iH))->GetBinError((((SCflow.at(iSC)).CutFlow).at(iH))->GetNbinsX()) , 2 ) ;
+            }
+            if ( itD->Signal) {
+              bool iSAssoc = false ;
+              if (  (Cfg.GetCommonSign())->size() != 0 ) {
+                for ( vector<string>::iterator itSL  = (Cfg.GetCommonSign())->begin() ; itSL != (Cfg.GetCommonSign())->end() ; ++itSL ) {
+                  if ( itD->NickName == (*itSL) ) {iSAssoc = true;}
+                }
+              } else {iSAssoc = true;}
+              if (iSAssoc) {
+                Signal     .push_back( (((SCflow.at(iSC)).CutFlow).at(iH))->GetBinContent((((SCflow.at(iSC)).CutFlow).at(iH))->GetNbinsX()) ) ; 
+                eStatSignal.push_back( (((SCflow.at(iSC)).CutFlow).at(iH))->GetBinError((((SCflow.at(iSC)).CutFlow).at(iH))->GetNbinsX())   ) ;
+                Proc.push_back( itD->NickName) ;  
+              }
+            }
+          }
+          eStatData = sqrt(eStatData);
+          // Background
+          iH = 0 ; 
+          for ( vector<InputData_t>::iterator itD = (Cfg.GetInputData())->begin() ; itD != (Cfg.GetInputData())->end() ; ++itD , ++iH) {
+            if ( itD->Bkgd  ) {
+               Background.push_back( (((SCflow.at(iSC)).CutFlow).at(iH))->GetBinContent((((SCflow.at(iSC)).CutFlow).at(iH))->GetNbinsX()) ) ; 
+               eStatBkgd .push_back( (((SCflow.at(iSC)).CutFlow).at(iH))->GetBinError((((SCflow.at(iSC)).CutFlow).at(iH))->GetNbinsX())   ) ;
+               Proc.push_back( itD->NickName) ;
+             }
+          } 
+        }
+      } 
+
+
+      LimitCardName = "LimitCards/" + Cfg.GetTAnaName() ;
+      if      ( iDG == -1 ) LimitCardName += "_AllData" ;
+      else if ( iDG >=  0 ) LimitCardName += "_" + ((Cfg.GetDataGroups())->at(iDG)).GroupName ;
+      if      ( iSC == -1 ) LimitCardName += "_CommonCuts" ;
+      else if ( iSC >=  0 ) LimitCardName += "_" + ((Cfg.GetScanCuts())->at(iSC)).ScanName ;
+      LimitCardName += "__CutBased.card" ;
+      cout << "[UATAnaDisplay::LimitCard] Writing: " << LimitCardName << endl;
+
+      FILE *cFile;
+      cFile = fopen (LimitCardName.c_str(),"w");
+
+      // ... Data, signal and bkgd rates
+      fprintf (cFile,"imax 1 number of channels\n");
+      fprintf (cFile,"jmax * number of background\n");
+      fprintf (cFile,"kmax * number of nuisance parameters\n");
+      fprintf (cFile,"Observation %-9.3f \n",Data);
+      fprintf (cFile,"bin ");
+      for ( int iD=0 ; iD < (signed) Signal    .size() ; ++iD ) fprintf (cFile,"1 ") ;
+      for ( int iD=0 ; iD < (signed) Background.size() ; ++iD ) fprintf (cFile,"1 ") ;
+      fprintf (cFile,"\n") ;
+      fprintf (cFile,"process ") ;
+      for ( int iD=0 ; iD < (signed) Proc      .size() ; ++iD ) fprintf (cFile,"%s ",(Proc.at(iD)).c_str());
+      fprintf (cFile,"\n") ;  
+      fprintf (cFile,"process ") ;
+      for ( int iD=1 ; iD <= (signed) Signal    .size() ; ++iD ) fprintf (cFile,"%i ", - (signed) Signal.size() + iD );
+      for ( int iD=1 ; iD <= (signed) Background.size() ; ++iD ) fprintf (cFile,"%i ",iD);
+      fprintf (cFile,"\n") ;
+      fprintf (cFile,"rate ") ;
+      for ( int iD=0 ; iD < (signed) Signal    .size() ; ++iD ) fprintf (cFile,"%-9.3f ",Signal.at(iD)) ;
+      for ( int iD=0 ; iD < (signed) Background.size() ; ++iD ) fprintf (cFile,"%-9.3f ",Background.at(iD)) ;
+      fprintf (cFile,"\n") ;
+
+      // ... Syst Errors
+      for ( vector<Systematic_t>::iterator itSyst = (Cfg.GetSystematic())->begin() ; itSyst != (Cfg.GetSystematic())->end() ; ++ itSyst ) {
+        fprintf (cFile,"%-25s %-5s ",(itSyst->systName).c_str(),(itSyst->systType).c_str());
+        for ( vector<string>::iterator itProc =  Proc.begin() ; itProc != Proc.end() ; ++itProc) {
+          bool pFound = false ;
+          for ( vector<string>::iterator itSM  = (itSyst->systMember).begin() ; itSM != (itSyst->systMember).end() ; ++itSM ) {
+            if ( (*itSM) == (*itProc) )  pFound = true ;
+          }
+          if ( pFound )  fprintf (cFile,"%-5.3f ",itSyst->systVal);
+          else           fprintf (cFile,"  -   "); 
+        }
+        fprintf (cFile,"\n") ; 
+      } 
+
+      // ... Stat Errors 
+      int iProc = 0 ;
+      for ( int iD=0 ; iD < (signed) Signal    .size() ; ++iD , ++iProc ) { 
+        double eStaRel = 1. ;
+        if (Signal.at(iD)>0.) eStaRel += eStatSignal.at(iD) / Signal.at(iD) ;
+        string statName = "stat_" + Proc.at(iProc) ;
+        string statType = "lnN" ;   
+        fprintf (cFile,"%-25s %-5s ",statName.c_str() , statType.c_str() ) ;
+        for ( int jProc = 0 ; jProc < (signed) Proc.size() ; ++jProc ) {
+           if ( jProc == iProc ) fprintf (cFile,"%-5.3f ",eStaRel) ;
+           else                  fprintf (cFile,"  -   ");
+        } 
+        fprintf (cFile,"\n") ; 
+      }
+      for ( int iD=0 ; iD < (signed) Background.size() ; ++iD , ++iProc ) { 
+        double eStaRel = 1. ;
+        if (Background.at(iD)>0.) eStaRel += eStatBkgd.at(iD) / Background.at(iD) ;
+        string statName = "stat_" + Proc.at(iProc) ;
+        string statType = "lnN" ;   
+        fprintf (cFile,"%-25s %-5s ",statName.c_str() , statType.c_str() ) ;
+        for ( int jProc = 0 ; jProc < (signed) Proc.size() ; ++jProc ) {
+           if ( jProc == iProc ) fprintf (cFile,"%-5.3f ",eStaRel) ;
+           else                  fprintf (cFile,"  -   ");
+        } 
+        fprintf (cFile,"\n") ; 
+      }
+
+      fclose(cFile);
+
+    }
+  } // DataGroup Loop
+
+}

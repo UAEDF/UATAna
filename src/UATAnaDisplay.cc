@@ -830,10 +830,16 @@ void UATAnaDisplay::LimitCard ( UATAnaConfig& Cfg ) {
             }
             if ( itD->Signal) {
               bool iSAssoc = false ;
-              if (  (Cfg.GetCommonSign())->size() != 0 ) {
+              if (  (((Cfg.GetScanCuts())->at(iSC)).SignList).size() != 0 ) {
+                for ( vector<string>::iterator itSL  = (((Cfg.GetScanCuts())->at(iSC)).SignList).begin() ;
+                                                  itSL != (((Cfg.GetScanCuts())->at(iSC)).SignList).end()   ; ++itSL ) {
+                  if ( itD->NickName == (*itSL) ) {iSAssoc = true;}
+                }
+/*              if (  (Cfg.GetCommonSign())->size() != 0 ) {
                 for ( vector<string>::iterator itSL  = (Cfg.GetCommonSign())->begin() ; itSL != (Cfg.GetCommonSign())->end() ; ++itSL ) {
                   if ( itD->NickName == (*itSL) ) {iSAssoc = true;}
                 }
+*/
               } else {iSAssoc = true;}
               if (iSAssoc) {
                 Signal     .push_back( (((SCflow.at(iSC)).CutFlow).at(iH))->GetBinContent((((SCflow.at(iSC)).CutFlow).at(iH))->GetNbinsX()) ) ; 

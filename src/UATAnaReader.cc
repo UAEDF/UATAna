@@ -110,9 +110,11 @@ void UATAnaReader::Analyze( UATAnaConfig& Cfg , bool& bWTree ) {
          // Create Clone
          (itOTT->OutFOne) = new TFile((itOTT->OutNOne).c_str(),"RECREATE");     
          (itOTT->OutTOne) = Tree->CloneTree(0);
+         (itOTT->OutTOne)->SetName((itOTT->TreeName).c_str());
          if ( itOTT->Split ) {
            (itOTT->OutFTwo) = new TFile((itOTT->OutNTwo).c_str(),"RECREATE");     
            (itOTT->OutTTwo) = Tree->CloneTree(0);
+           (itOTT->OutTTwo)->SetName((itOTT->TreeName).c_str());
          }
        }
      }

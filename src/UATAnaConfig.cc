@@ -125,7 +125,7 @@ void UATAnaConfig::Reset(){
   DataGroups.clear(); 
  
   CommonCuts.clear(); 
-
+  LimBinName = "1";
 }
 
 // ---------------------- ReadCfg() --------------------------------
@@ -140,10 +140,10 @@ void UATAnaConfig::ReadCfg(TString CfgName) {
     return ;
   }
 
-  char str[255];
+  char str[1000];
   while( Cfg ) {
 
-    Cfg.getline(str, 255);
+    Cfg.getline(str,1000);
     if(!Cfg) continue;
     istringstream iss(str);
     if (iss.str().find("#") != string::npos ) continue;
@@ -197,32 +197,34 @@ void UATAnaConfig::ReadCfg(TString CfgName) {
              if ( itBG->BaseName == DataName ) iBGFound = iBG ;
            }  
            if ( iBGFound >= 0 ) {
-             for ( int iMember = 4 ; iMember < (signed)Elements.size() ; ++iMember ) 
+             for ( int iMember = 5 ; iMember < (signed)Elements.size() ; ++iMember ) 
                  ((((DataGroups.at(iDGFound)).Members).at(iBGFound)).Members).push_back(Elements.at(iMember));
            } else {
               BaseGroup_t newBG ;
               newBG.BaseName = DataName ;
+              newBG.Color    = atoi(Elements.at(4).c_str()) ;
               for (vector<InputData_t>::iterator itD = GetInputData()->begin() ; itD != GetInputData()->end() ; ++itD) {
-                if ( Elements.at(4) == itD->NickName ) {
+                if ( Elements.at(5) == itD->NickName ) {
                   newBG.Signal   = itD->Signal;
                   newBG.Bkgd     = itD->Bkgd  ;
                   newBG.Data     = itD->Data  ;
                 }
               }
-              for ( int iMember = 4 ; iMember < (signed)Elements.size() ; ++iMember ) (newBG.Members).push_back(Elements.at(iMember));
+              for ( int iMember = 5 ; iMember < (signed)Elements.size() ; ++iMember ) (newBG.Members).push_back(Elements.at(iMember));
               ((DataGroups.at(iDGFound)).Members).push_back(newBG);   
            }
          } else {
            BaseGroup_t newBG ;
            newBG.BaseName = DataName ;
+           newBG.Color    = atoi(Elements.at(4).c_str()) ;
            for (vector<InputData_t>::iterator itD = GetInputData()->begin() ; itD != GetInputData()->end() ; ++itD) {
-             if ( Elements.at(4) == itD->NickName ) {
+             if ( Elements.at(5) == itD->NickName ) {
                newBG.Signal   = itD->Signal;
                newBG.Bkgd     = itD->Bkgd  ;
                newBG.Data     = itD->Data  ;
              }
            }
-           for ( int iMember = 4 ; iMember < (signed)Elements.size() ; ++iMember ) (newBG.Members).push_back(Elements.at(iMember));
+           for ( int iMember = 5 ; iMember < (signed)Elements.size() ; ++iMember ) (newBG.Members).push_back(Elements.at(iMember));
            DataGroup_t newDG ;
            newDG.GroupName = GroupName ; 
            (newDG.Members).push_back(newBG); 
@@ -234,13 +236,14 @@ void UATAnaConfig::ReadCfg(TString CfgName) {
          DataGroup_t newDG ;
          newDG.GroupName = GroupName ;
          for ( vector<DataGroup_t>::iterator itDG = DataGroups.begin() ; itDG !=  DataGroups.end() ; ++itDG ) {
-           for ( int iMember = 4 ; iMember < (signed)Elements.size() ; ++iMember ) {
+           for ( int iMember = 5 ; iMember < (signed)Elements.size() ; ++iMember ) {
              if ( itDG->GroupName == Elements.at(iMember) ) {
                if ( First ) {    
                  First = false ;
                  for ( vector<BaseGroup_t>::iterator itBG = (itDG->Members).begin() ; itBG != (itDG->Members).end() ; ++itBG  ) {
                    BaseGroup_t newBG ;
                    newBG.BaseName = itBG->BaseName ;
+                   newBG.Color    = itBG->Color ;
                    newBG.Signal   = itBG->Signal;
                    newBG.Bkgd     = itBG->Bkgd  ;
                    newBG.Data     = itBG->Data  ;
@@ -263,6 +266,7 @@ void UATAnaConfig::ReadCfg(TString CfgName) {
                    if ( !FoundBG ) {
                       BaseGroup_t newBG ;
                       newBG.BaseName = itBG->BaseName ;
+                      newBG.Color    = itBG->Color ;
                       newBG.Signal   = itBG->Signal;
                       newBG.Bkgd     = itBG->Bkgd  ;
                       newBG.Data     = itBG->Data  ;
@@ -353,10 +357,15 @@ void UATAnaConfig::ReadCfg(TString CfgName) {
 
     // CommonCuts
     if ( Elements.at(0) == "CommonCut" ) {
-       if  ( Elements.size() == 3 ) {
-          TreeFormula_t Cut;
+       if  ( Elements.size() >= 3 ) {
+          CommonCut_t Cut;
           Cut.NickName   = Elements.at(1);
           Cut.Expression = Elements.at(2);
+          if ( Elements.size() > 3 ) {
+            for ( int iE = 3 ; iE < (signed) Elements.size() ; ++iE ) {
+              Cut.CCTitle += Elements.at(iE) + " " ;
+            }
+          }
           CommonCuts.push_back(Cut);
        }
     }
@@ -374,6 +383,10 @@ void UATAnaConfig::ReadCfg(TString CfgName) {
       string ScanName = Elements.at(1);
       Cut.NickName    = Elements.at(2);
       Cut.Expression  = Elements.at(3);
+      string SCTitle  ;
+      if ( Elements.size() > 4 ) {
+        for ( int iE = 4 ; iE < (signed) Elements.size() ; ++iE ) SCTitle += Elements.at(iE) + " " ;
+      }
       int iSCFound = -1 ; 
       int iSC      =  0 ; 
 
@@ -413,7 +426,13 @@ void UATAnaConfig::ReadCfg(TString CfgName) {
       SetCutLevels(Elements.at(7),CtrlPlot.CCNickName);
       SetCutLevels(Elements.at(8),CtrlPlot.SCNickName);
       CtrlPlots.push_back( CtrlPlot );    
+      //cout << (CtrlPlot.NickName).c_str() << " " << (CtrlPlot.Expression).c_str() << endl;
     } 
+
+    // LimitBinName
+    if ( Elements.at(0) == "LimBinName") {
+      LimBinName = Elements.at(1) ;
+    }
 
     // Sytematics
     if ( Elements.at(0) == "Systematic" ) {

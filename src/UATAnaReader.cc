@@ -133,7 +133,7 @@ void UATAnaReader::Analyze( UATAnaConfig& Cfg , bool& bWTree ) {
    // Create DataSetWght Formula
    for ( vector<DataSetWght_t>::iterator itDSW = (Cfg.GetDataSetWghts())->begin() ; itDSW != (Cfg.GetDataSetWghts())->end() ; ++itDSW ) itDSW->MakFormula(Tree); 
    // Create CommonCuts Formula   
-   for ( vector<TreeFormula_t>::iterator itCC = (Cfg.GetCommonCuts())->begin() ; itCC != (Cfg.GetCommonCuts())->end() ; ++itCC) itCC->MakFormula(Tree);
+   for ( vector<CommonCut_t>::iterator itCC = (Cfg.GetCommonCuts())->begin() ; itCC != (Cfg.GetCommonCuts())->end() ; ++itCC) itCC->MakFormula(Tree);
    // Create ScanCuts Formula
    for ( vector<ScanCut_t>::iterator itSCG = (Cfg.GetScanCuts())->begin() ; itSCG != (Cfg.GetScanCuts())->end() ; ++itSCG) {
      for  ( vector<TreeFormula_t>::iterator itSC = (itSCG->Cuts).begin() ; itSC != (itSCG->Cuts).end() ; ++itSC ) itSC->MakFormula(Tree);
@@ -157,7 +157,7 @@ void UATAnaReader::Analyze( UATAnaConfig& Cfg , bool& bWTree ) {
      // Evaluate DataSetWght Formula
      for ( vector<DataSetWght_t>::iterator itDSW = (Cfg.GetDataSetWghts())->begin() ; itDSW != (Cfg.GetDataSetWghts())->end() ; ++itDSW ) itDSW->EvaFormula();
      // Evaluate CommonCuts Formula   
-     for ( vector<TreeFormula_t>::iterator itCC = (Cfg.GetCommonCuts())->begin() ; itCC != (Cfg.GetCommonCuts())->end() ; ++itCC) itCC->EvaFormula();
+     for ( vector<CommonCut_t>::iterator itCC = (Cfg.GetCommonCuts())->begin() ; itCC != (Cfg.GetCommonCuts())->end() ; ++itCC) itCC->EvaFormula();
      // Evaluate ScanCuts Formula
      for ( vector<ScanCut_t>::iterator itSCG = (Cfg.GetScanCuts())->begin() ; itSCG != (Cfg.GetScanCuts())->end() ; ++itSCG) {
        for  ( vector<TreeFormula_t>::iterator itSC = (itSCG->Cuts).begin() ; itSC != (itSCG->Cuts).end() ; ++itSC ) itSC->EvaFormula();
@@ -182,7 +182,7 @@ void UATAnaReader::Analyze( UATAnaConfig& Cfg , bool& bWTree ) {
      // CommonCuts
      bool passCC = true ;
      int  iCC = 0 ;
-     for ( vector<TreeFormula_t>::iterator itCC = (Cfg.GetCommonCuts())->begin() ; itCC != (Cfg.GetCommonCuts())->end() ; ++itCC , ++iCC ) {
+     for ( vector<CommonCut_t>::iterator itCC = (Cfg.GetCommonCuts())->begin() ; itCC != (Cfg.GetCommonCuts())->end() ; ++itCC , ++iCC ) {
        if ( !passCC ) continue; 
        if ( itCC->Result() ) {
          FillCutFlow(Cfg,itD->NickName,iCC,Weight);
@@ -216,7 +216,7 @@ void UATAnaReader::Analyze( UATAnaConfig& Cfg , bool& bWTree ) {
        for ( vector<OutTTree_t>::iterator itOTT = (Cfg.GetOutTTree())->begin() ; itOTT != (Cfg.GetOutTTree())->end() ; ++itOTT ) {
          if ( itD->NickName == itOTT->DataName ) {
            bool passTCC = true ;
-           for ( vector<TreeFormula_t>::iterator itCC = (Cfg.GetCommonCuts())->begin() ; itCC != (Cfg.GetCommonCuts())->end() ; ++itCC ) {
+           for ( vector<CommonCut_t>::iterator itCC = (Cfg.GetCommonCuts())->begin() ; itCC != (Cfg.GetCommonCuts())->end() ; ++itCC ) {
              if ( !passTCC ) continue; 
              if ( itCC->Result() ) {
                if ( itCC->NickName == itOTT->CutName ) {
@@ -268,7 +268,7 @@ void UATAnaReader::Analyze( UATAnaConfig& Cfg , bool& bWTree ) {
    // Delete DataSetWght Formula
    for ( vector<DataSetWght_t>::iterator itDSW = (Cfg.GetDataSetWghts())->begin() ; itDSW != (Cfg.GetDataSetWghts())->end() ; ++itDSW ) itDSW->DelFormula();
    // Delete CommonCuts Formula   
-   for ( vector<TreeFormula_t>::iterator iCC = (Cfg.GetCommonCuts())->begin() ; iCC != (Cfg.GetCommonCuts())->end() ; ++iCC) iCC->DelFormula();
+   for ( vector<CommonCut_t>::iterator iCC = (Cfg.GetCommonCuts())->begin() ; iCC != (Cfg.GetCommonCuts())->end() ; ++iCC) iCC->DelFormula();
    // Delete ScanCuts Formula
    for ( vector<ScanCut_t>::iterator iSCG = (Cfg.GetScanCuts())->begin() ; iSCG != (Cfg.GetScanCuts())->end() ; ++iSCG) {
      for  ( vector<TreeFormula_t>::iterator iSC = (iSCG->Cuts).begin() ; iSC != (iSCG->Cuts).end() ; ++iSC ) iSC->DelFormula();
@@ -345,7 +345,7 @@ void UATAnaReader::FillPlotCC ( UATAnaConfig& Cfg , string& NickName , Double_t&
     for ( vector<string>::iterator itCC = (itCP->CCNickName).begin() ; itCC != (itCP->CCNickName).end() ; ++itCC ) {
       bool    Cut     = false      ;
       bool    passCC  = true       ;
-      for ( vector<TreeFormula_t>::iterator itCut = (Cfg.GetCommonCuts())->begin() ; itCut != (Cfg.GetCommonCuts())->end() ; ++itCut ) {
+      for ( vector<CommonCut_t>::iterator itCut = (Cfg.GetCommonCuts())->begin() ; itCut != (Cfg.GetCommonCuts())->end() ; ++itCut ) {
         if ( !passCC ) continue; 
         if ( itCut->Result() ) {
           if ( itCut->NickName == (*itCC) ) Cut = true ;

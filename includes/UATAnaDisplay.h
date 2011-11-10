@@ -31,7 +31,10 @@ class UATAnaDisplay {
 
   void PlotStack( string  , string  , string  , bool  ,
                   vector<TH1F*>&  , vector<TH1F*>&  , vector<TH1F*>&  ,
-                  vector<string>  , vector<string>  , vector<string>  ) ;
+                  vector<string>  , vector<string>  , vector<string>  ,
+                  vector<int>     , vector<int>     , vector<int>     ,
+                  string = "Var"  , string = "Events" , string =""
+                ) ;
 
   void PrintYields ( string  , string  , vector<string>  ,
                      vector<TH1F*>&  , vector<TH1F*>&  , vector<TH1F*>&  ,

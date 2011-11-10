@@ -34,6 +34,7 @@ class BaseGroup_t {
   BaseGroup_t(){;}
   virtual ~BaseGroup_t(){;}
   string         BaseName ;
+  Int_t          Color    ;
   Bool_t         Signal   ;
   Bool_t         Bkgd     ;
   Bool_t         Data     ;
@@ -92,12 +93,19 @@ class DataSetWght_t : public TreeFormula_t {
   vector<string> DataSets ; 
 };
 
+
+class CommonCut_t : public TreeFormula_t {
+  public:
+  string   CCTitle;               
+};
+
 class ScanCut_t {
   public:
   ScanCut_t(){;}
   virtual ~ScanCut_t(){;}
   string                 ScanName ;
   vector<TreeFormula_t>  Cuts     ;
+  vector<string>         SCTitle  ;
   vector<string>         SignList ;
 };
 
@@ -166,14 +174,15 @@ class UATAnaConfig {
   vector<ExtEffTH2_t>    ExtEffTH2  ;
   Float_t                TargetLumi ;
 
-  vector<TreeFormula_t>  CommonCuts ;  
+  vector<CommonCut_t>    CommonCuts ;  
   vector<string>         CommonSign ;  
 
   vector<ScanCut_t>      ScanCuts   ;
 
   vector<CtrlPlot_t>     CtrlPlots  ;
 
-  vector<Systematic_t> Systematic;
+  string                 LimBinName;
+  vector<Systematic_t>   Systematic;
  
   public:
 
@@ -194,11 +203,12 @@ class UATAnaConfig {
   TreeFormula_t*          GetTreeWeight()     { return &TreeWeight   ; }
   vector<ExtEffTH2_t>*    GetExtEffTH2()      { return &ExtEffTH2    ; }
   Float_t                 GetTargetLumi()     { return TargetLumi    ; }           
-  vector<TreeFormula_t>*  GetCommonCuts()     { return &CommonCuts   ; }
+  vector<CommonCut_t>*    GetCommonCuts()     { return &CommonCuts   ; }
   vector<string>*         GetCommonSign()     { return &CommonSign   ; }
   vector<ScanCut_t>*      GetScanCuts()       { return &ScanCuts     ; }
   vector<CtrlPlot_t>*     GetCtrlPlots()      { return &CtrlPlots    ; }
-  vector<Systematic_t>*  GetSystematic()       { return &Systematic ; }
+  string                  GetLimBinName()   { return LimBinName  ; }
+  vector<Systematic_t>*   GetSystematic()       { return &Systematic ; }
 
 
 };

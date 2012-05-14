@@ -153,9 +153,21 @@ class Systematic_t {
   public:
   string systName ;
   string systType ;
-  float  systVal  ;
+  vector <float>  systVal  ;
   vector <string> systMember ;
 };
+
+class SyDDEstim_t {
+  public:
+  string SyDDEName ;
+  string SyDDEType ;
+  float  SyDDEmass ;
+  float  SyDDEdctrl;
+  float  SyDDEderr;
+  vector <string> SyDDECards  ;
+  vector <string> SyDDEMember ;
+};
+
 
 class UATAnaConfig {
 
@@ -182,8 +194,18 @@ class UATAnaConfig {
   vector<CtrlPlot_t>     CtrlPlots  ;
 
   string                 LimBinName;
+  float                  HiggsMass ;
+  // Systematic errors
   vector<Systematic_t>   Systematic;
+  vector<SyDDEstim_t>    SyDDEstim;
+  // Statisctic errors
+  vector<string>       StatMember;
+  string               StatPrefix;
+  string               StatMiddle;
+  string               StatSuffix;
  
+
+
   public:
 
   UATAnaConfig(){ Reset(); }
@@ -207,8 +229,15 @@ class UATAnaConfig {
   vector<string>*         GetCommonSign()     { return &CommonSign   ; }
   vector<ScanCut_t>*      GetScanCuts()       { return &ScanCuts     ; }
   vector<CtrlPlot_t>*     GetCtrlPlots()      { return &CtrlPlots    ; }
-  string                  GetLimBinName()   { return LimBinName  ; }
-  vector<Systematic_t>*   GetSystematic()       { return &Systematic ; }
+  string                  GetLimBinName()     { return LimBinName    ; }
+  float                  GetHiggsMass()       { return HiggsMass     ; }
+  vector<Systematic_t>*   GetSystematic()     { return &Systematic   ; }
+  vector<SyDDEstim_t>*   GetSyDDEstim()       { return &SyDDEstim    ; }
+  vector<string>*        GetStatMember()      { return  &StatMember  ; }
+  string                 GetStatPrefix()      { return  StatPrefix   ; }
+  string                 GetStatMiddle()      { return  StatMiddle   ; }
+  string                 GetStatSuffix()      { return  StatSuffix   ; }
+
 
 
 };

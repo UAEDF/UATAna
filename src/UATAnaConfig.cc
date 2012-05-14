@@ -125,7 +125,18 @@ void UATAnaConfig::Reset(){
   DataGroups.clear(); 
  
   CommonCuts.clear(); 
+
+
   LimBinName = "1";
+  HiggsMass  = -1 ;
+  Systematic.clear() ;
+  SyDDEstim.clear();
+  StatMember.clear();
+  StatPrefix = "CMS_" ;
+  StatMiddle = ""     ;
+  StatSuffix = "_bin1";  
+
+
 }
 
 // ---------------------- ReadCfg() --------------------------------
@@ -434,16 +445,76 @@ void UATAnaConfig::ReadCfg(TString CfgName) {
       LimBinName = Elements.at(1) ;
     }
 
+    // HiggsMass
+    if ( Elements.at(0) == "HiggsMass") {
+      HiggsMass = atof(Elements.at(1).c_str()) ;
+    }
+
     // Sytematics
     if ( Elements.at(0) == "Systematic" ) {
-      Systematic_t Syst ;
-      Syst.systName = Elements.at(1) ;
-      Syst.systType = Elements.at(2) ;
-      Syst.systVal  = atof((Elements.at(3)).c_str()) ;
-      vector<string> Member = UATokenize( Elements.at(4) , ':' );
-      for ( int iM = 0 ; iM < (signed) Member.size() ; ++iM ) (Syst.systMember).push_back(Member.at(iM)) ;
-      Systematic.push_back(Syst);
+      string Name =  Elements.at(1) ;
+      int iSFound = -1;
+      int iS      =  0;
+      for ( vector<Systematic_t>::iterator itS = Systematic.begin() ; itS != Systematic.end() ; ++itS , ++iS ) {
+        if ( itS->systName == Name ) iSFound = iS ;
+      }
+      if ( iSFound >= 0 ) {
+        float Val  = atof((Elements.at(3)).c_str()) ;
+        vector<string> Member = UATokenize( Elements.at(4) , ':' );
+        for ( int iM = 0 ; iM < (signed) Member.size() ; ++iM ) {
+          ((Systematic.at(iSFound)).systVal).push_back(Val);
+          ((Systematic.at(iSFound)).systMember).push_back(Member.at(iM)) ;
+        }
+      } else {
+        Systematic_t Syst ;
+        Syst.systName = Elements.at(1) ;
+        Syst.systType = Elements.at(2) ;
+        float Val  = atof((Elements.at(3)).c_str()) ;
+        vector<string> Member = UATokenize( Elements.at(4) , ':' );
+        for ( int iM = 0 ; iM < (signed) Member.size() ; ++iM ) {
+          (Syst.systVal).push_back(Val);
+          (Syst.systMember).push_back(Member.at(iM)) ;
+        }
+        Systematic.push_back(Syst);
+      }
     }
+
+   // SyDDEstim
+    if ( Elements.at(0) == "SyDDEstim" ) {
+      SyDDEstim_t SyDDE ;
+      SyDDE.SyDDEName  = Elements.at(1) ;
+      SyDDE.SyDDEType  = Elements.at(2) ;
+      SyDDE.SyDDEmass  = atof((Elements.at(3)).c_str()) ;
+      SyDDE.SyDDEdctrl = atof((Elements.at(4)).c_str()) ;
+      SyDDE.SyDDEderr  = atof((Elements.at(5)).c_str()) ;
+      vector<string> Cards = UATokenize( Elements.at(6) , ':' );
+      for ( int iC = 0 ; iC < (signed) Cards.size() ; ++iC ) (SyDDE.SyDDECards).push_back(Cards.at(iC)) ;
+      vector<string> Member = UATokenize( Elements.at(7) , ':' );
+      for ( int iM = 0 ; iM < (signed) Member.size() ; ++iM ) (SyDDE.SyDDEMember).push_back(Member.at(iM)) ;
+      SyDDEstim.push_back(SyDDE);
+    }
+
+    //StatMember
+    if ( Elements.at(0) == "StatMember" ) {
+      vector<string> Member = UATokenize( Elements.at(1) , ':' );
+      for ( int iM = 0 ; iM < (signed) Member.size() ; ++iM ) StatMember.push_back(Member.at(iM)) ;
+    }
+
+    // StatPrefix
+    if ( Elements.at(0) == "StatPrefix" ) {
+      StatPrefix = Elements.at(1) ;
+    }
+
+    // StatMiddle
+    if ( Elements.at(0) == "StatMiddle" ) {
+      StatMiddle = Elements.at(1) ;
+    }
+
+    // StatSuffix
+    if ( Elements.at(0) == "StatSuffix" ) {
+      StatSuffix = Elements.at(1) ;
+    }
+
 
 
   } 

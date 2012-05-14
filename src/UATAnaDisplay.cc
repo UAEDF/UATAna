@@ -12,6 +12,49 @@
 
 #include "src/tdrstyle.C"
 
+
+//----------------------------------- Tools ------------------------------------------
+
+void getsyst(TString cname, float mass, float &N, float &s, float &u) {
+
+  ifstream card; card.open(cname.Data());
+  if(!card) {
+    printf("Did not find card %s\n", cname.Data());
+    return;
+  }
+//  cout << " Reading: " << cname.Data() << endl ;
+
+  while ( !card.eof() ) {
+
+    //cout << "." << endl;
+    float HiggsMass(0);
+    float NumEventsInCtrlRegion(0);
+    float scaleToSignRegion(0);
+    float uncertaintyOnScaleToSignRegion(0);
+    card >> HiggsMass >> NumEventsInCtrlRegion >> scaleToSignRegion >> uncertaintyOnScaleToSignRegion;
+    //cout << HiggsMass << NumEventsInCtrlRegion << scaleToSignRegion << uncertaintyOnScaleToSignRegion << endl;
+    // notes from Emanuele
+    // n in signal region = NumEventsInCtrlRegion * scaleToSignRegion
+    // uncertainty on n   = NumEventsInCtrlRegion * uncertaintyOnScaleToSignRegion    
+    // fractional uncertainty on n = uncertaintyOnScaleToSignRegion / scaleToSignRegion
+
+//    printf("looking for mass point %.1f %.1f\n", mass, HiggsMass);
+    if (fabs(HiggsMass-mass)<5) {
+      s = scaleToSignRegion;
+      N = NumEventsInCtrlRegion;
+      u = uncertaintyOnScaleToSignRegion;
+//      printf("Found mass point %.0f: %.3f %.3f %.3f\n", mass, N, s, u);
+      return;
+    }
+  }
+  printf("Did not find mass point %.0f\n", mass);
+  N = -1.;
+  s = -1.;
+  u = -1.;
+  return;
+
+}
+
 //----------------------------------- Init() ------------------------------------------
 
 void UATAnaDisplay::Init ( UATAnaConfig& Cfg ) {
@@ -850,17 +893,21 @@ void UATAnaDisplay::LimitCard ( UATAnaConfig& Cfg ) {
   vector<Double_t>  Background ;
   vector<Double_t>  eStatBkgd ;
   vector<string> Proc;
+  vector<string> BgProc;
 
   cout << "[UATAnaDisplay::LimitCard] nGroup = " << (Cfg.GetDataGroups())->size() << " nScan = " << (Cfg.GetScanCuts())->size() << endl ; 
 
   // Loop on DataGroup (-1:All InputData)
-  for ( int iDG = -1 ; iDG < (signed) (Cfg.GetDataGroups())->size() ; ++iDG ) {  
+  //for ( int iDG = -1 ; iDG < (signed) (Cfg.GetDataGroups())->size() ; ++iDG ) {  
+  { int iDG = -1 ;
     // Loop on ScanCut (-1:CommonCuts)
-    for ( int iSC = -1  ; iSC < (signed) (Cfg.GetScanCuts())->size() ; ++iSC ) {  
-  
+    //for ( int iSC = -1  ; iSC < (signed) (Cfg.GetScanCuts())->size() ; ++iSC ) {  
+    for ( int iSC = 0 ; iSC < (signed) (Cfg.GetScanCuts())->size() ; ++iSC ) {  
+
       Data = 0  ;
       eStatData = 0  ; 
       Proc.clear();
+      BgProc.clear();
       Signal.clear();
       eStatSignal.clear();
       Background.clear();
@@ -897,6 +944,7 @@ void UATAnaDisplay::LimitCard ( UATAnaConfig& Cfg ) {
                Background.push_back( (CCflow.at(iH))->GetBinContent((CCflow.at(iH))->GetNbinsX()) ); 
                eStatBkgd .push_back( (CCflow.at(iH))->GetBinError((CCflow.at(iH))->GetNbinsX()) ); 
                Proc.push_back( itD->NickName) ;
+               BgProc.push_back( itD->NickName) ;
             }
           }
         } else {
@@ -932,9 +980,39 @@ void UATAnaDisplay::LimitCard ( UATAnaConfig& Cfg ) {
           iH = 0 ; 
           for ( vector<InputData_t>::iterator itD = (Cfg.GetInputData())->begin() ; itD != (Cfg.GetInputData())->end() ; ++itD , ++iH) {
             if ( itD->Bkgd  ) {
-               Background.push_back( (((SCflow.at(iSC)).CutFlow).at(iH))->GetBinContent((((SCflow.at(iSC)).CutFlow).at(iH))->GetNbinsX()) ) ; 
-               eStatBkgd .push_back( (((SCflow.at(iSC)).CutFlow).at(iH))->GetBinError((((SCflow.at(iSC)).CutFlow).at(iH))->GetNbinsX())   ) ;
+               //Background.push_back( (((SCflow.at(iSC)).CutFlow).at(iH))->GetBinContent((((SCflow.at(iSC)).CutFlow).at(iH))->GetNbinsX()) ) ; 
+               //eStatBkgd .push_back( (((SCflow.at(iSC)).CutFlow).at(iH))->GetBinError((((SCflow.at(iSC)).CutFlow).at(iH))->GetNbinsX())   ) ;
+               float Bkgd  = (((SCflow.at(iSC)).CutFlow).at(iH))->GetBinContent((((SCflow.at(iSC)).CutFlow).at(iH))->GetNbinsX());
+               float eBkgd = (((SCflow.at(iSC)).CutFlow).at(iH))->GetBinError((((SCflow.at(iSC)).CutFlow).at(iH))->GetNbinsX()) ;
+               // DDE
+               for ( vector<SyDDEstim_t>::iterator itDDE = (Cfg.GetSyDDEstim())->begin() ; itDDE != (Cfg.GetSyDDEstim())->end() ; ++itDDE ) {
+                 for ( vector<string>::iterator itDDEMemb = (itDDE->SyDDEMember).begin() ; itDDEMemb != (itDDE->SyDDEMember).end() ; ++itDDEMemb ) {
+                   if ( itD->NickName == (*itDDEMemb) ) {
+ 
+                     // ... Loop on DDE datacards and fetch: NumEventsInCtrlRegion scaleToSignRegion uncertaintyOnScaleToSignRegion
+                     float RateOrigin = Bkgd ;
+                     float RateTarget = 0. ;
+                     for ( vector<string>::iterator itDDECard = (itDDE->SyDDECards).begin() ; itDDECard != (itDDE->SyDDECards).end() ; ++itDDECard ) {
+                       float N (0), s(0), u(0) ;
+                       getsyst(*itDDECard,Cfg.GetHiggsMass(),N,s,u);
+                       if (s < 0) continue;
+                       RateTarget += N*s ;
+                     }
+
+                     // ... Normalize Bkgd
+                     if (RateTarget > 0) {
+                       float ScaleRate  = RateTarget/RateOrigin;                    
+                       Bkgd  *= ScaleRate;
+                       eBkgd *= ScaleRate;
+                     }
+
+                   } 
+                 }
+               }
+               Background.push_back( Bkgd  ) ;
+               eStatBkgd .push_back( eBkgd );
                Proc.push_back( itD->NickName) ;
+               BgProc.push_back( itD->NickName) ;
              }
           } 
         }
@@ -960,60 +1038,151 @@ void UATAnaDisplay::LimitCard ( UATAnaConfig& Cfg ) {
       fprintf (cFile,"bin         %-9s \n",(Cfg.GetLimBinName()).c_str()) ;
       fprintf (cFile,"Observation %-9.3f \n",Data);
       fprintf (cFile,"----------------------------------------------------------------------------------------------------------------------------------\n");
-      fprintf (cFile,"bin                             ");
+      fprintf (cFile,"bin                                         ");
       for ( int iD=0 ; iD < (signed) Signal    .size() ; ++iD ) fprintf (cFile,"%-9s ",(Cfg.GetLimBinName()).c_str()) ;
       for ( int iD=0 ; iD < (signed) Background.size() ; ++iD ) fprintf (cFile,"%-9s ",(Cfg.GetLimBinName()).c_str()) ;
       fprintf (cFile,"\n") ;
-      fprintf (cFile,"process                         ") ;
+      fprintf (cFile,"process                                     ") ;
       for ( int iD=0 ; iD < (signed) Proc      .size() ; ++iD ) fprintf (cFile,"%-9s ",(Proc.at(iD)).c_str());
       fprintf (cFile,"\n") ;  
-      fprintf (cFile,"process                         ") ;
+      fprintf (cFile,"process                                     ") ;
       for ( int iD=1 ; iD <= (signed) Signal    .size() ; ++iD ) fprintf (cFile,"%-9i ", - (signed) Signal.size() + iD );
       for ( int iD=1 ; iD <= (signed) Background.size() ; ++iD ) fprintf (cFile,"%-9i ",iD);
       fprintf (cFile,"\n") ;
-      fprintf (cFile,"rate                            ") ;
+      fprintf (cFile,"rate                                        ") ;
       for ( int iD=0 ; iD < (signed) Signal    .size() ; ++iD ) fprintf (cFile,"%-9.3f ",Signal.at(iD)) ;
       for ( int iD=0 ; iD < (signed) Background.size() ; ++iD ) fprintf (cFile,"%-9.3f ",Background.at(iD)) ;
       fprintf (cFile,"\n") ;
 
-      fprintf (cFile,"----------------------------------------------------------------------------------------------------------------------------------\n");
       // ... Syst Errors
+      fprintf (cFile,"----------------------------------------------------------------------------------------------------------------------------------\n");
       for ( vector<Systematic_t>::iterator itSyst = (Cfg.GetSystematic())->begin() ; itSyst != (Cfg.GetSystematic())->end() ; ++ itSyst ) {
-        fprintf (cFile,"%-25s %-5s ",(itSyst->systName).c_str(),(itSyst->systType).c_str());
+        fprintf (cFile,"%-30s %-5s        ",(itSyst->systName).c_str(),(itSyst->systType).c_str());
         for ( vector<string>::iterator itProc =  Proc.begin() ; itProc != Proc.end() ; ++itProc) {
           bool pFound = false ;
-          for ( vector<string>::iterator itSM  = (itSyst->systMember).begin() ; itSM != (itSyst->systMember).end() ; ++itSM ) {
-            if ( (*itSM) == (*itProc) )  pFound = true ;
+          int  iSyst  = -1;
+          int  jSyst  =  0;
+          for ( vector<string>::iterator itSM  = (itSyst->systMember).begin() ; itSM != (itSyst->systMember).end() ; ++itSM , ++jSyst ) {
+            if ( (*itSM) == (*itProc) ) { pFound = true ; iSyst = jSyst ; }
           }
-          if ( pFound )  fprintf (cFile,"%-5.3f     ",itSyst->systVal);
+          if ( pFound )  fprintf (cFile,"%-5.3f     ",(itSyst->systVal).at(iSyst));
           else           fprintf (cFile,"  -       "); 
         }
         fprintf (cFile,"\n") ; 
       } 
 
+      // ... Data Driven Estimate Errors 
       fprintf (cFile,"----------------------------------------------------------------------------------------------------------------------------------\n");
+      for ( vector<SyDDEstim_t>::iterator itDDE = (Cfg.GetSyDDEstim())->begin() ; itDDE != (Cfg.GetSyDDEstim())->end() ; ++itDDE ) {
+        for ( vector<string>::iterator itDDEMemb = (itDDE->SyDDEMember).begin() ; itDDEMemb != (itDDE->SyDDEMember).end() ; ++itDDEMemb ) {
+
+          // 0) Find back process
+          int iB = -1 ;
+          int iD = -1 ;
+          for ( vector<InputData_t>::iterator itD = (Cfg.GetInputData())->begin() ; itD != (Cfg.GetInputData())->end() ; ++itD ) {
+            if ( itD->Bkgd  ) { ++iD; if ( itD->NickName == (*itDDEMemb) ) iB = iD ; }
+          }
+          if ( iB == -1 ) {
+            cout << "[UATAnaDisplay::LimitCard] ERROR: DDE Proc not found : " << (*itDDEMemb) << endl;
+            continue;
+          }
+
+          // 1) Compute from datacards
+          // ... N in signal region
+          float Nsig = Background.at(iB) ;
+         
+          // ... Loop on DDE datacards and fetch: NumEventsInCtrlRegion scaleToSignRegion uncertaintyOnScaleToSignRegion
+          vector<float> NSigRegion ;
+          vector<float> NCtrlRegion ;
+          vector<float> Scale2Sign  ;
+          vector<float> UScale2Sign ;
+          for ( vector<string>::iterator itDDECard = (itDDE->SyDDECards).begin() ; itDDECard != (itDDE->SyDDECards).end() ; ++itDDECard ) {
+            float N (Nsig), s(0), u(0) ;
+            getsyst(*itDDECard,Cfg.GetHiggsMass(),N,s,u);
+            if (s < 0) continue;
+            NCtrlRegion.push_back(N);
+            Scale2Sign .push_back(s);
+            UScale2Sign.push_back(u);
+          }          
+
+          if (NCtrlRegion.size() == 0) continue;
+
+          // ...  Sum Up
+          float Nctrl (0) ;
+          Nctrl = NCtrlRegion.at(0);
+          float scfac = Nsig/Nctrl;
+          float unc (0) ;
+          for ( int j = 0 ; j < (signed) NCtrlRegion.size() ; ++j) unc += UScale2Sign.at(j); 
+
+          // ... and the final stuff
+          float extr(0);
+          if ( (itDDE->SyDDEType) == "lnN" ) extr = 1+unc/scfac;  // syst w.r.t 1
+          if ( (itDDE->SyDDEType) == "gmM" ) extr = unc/scfac;    // syst w.r.t 0
+
+          // 2) Write result
+          // ... lnN/gmM
+          string extrName = itDDE->SyDDEName + "_extr";
+          fprintf (cFile,"%-30s %-5s        ",extrName.c_str() , (itDDE->SyDDEType).c_str() ) ;
+          for ( vector<string>::iterator itProc =  Proc.begin() ; itProc != Proc.end() ; ++itProc) {
+            if ( (*itDDEMemb) == (*itProc) ) fprintf (cFile,"%-5.3f     ",extr) ;
+            else                                                     fprintf (cFile,"  -       ");
+          }
+          fprintf (cFile,"\n") ;
+          // ... gmN
+          extrName = itDDE->SyDDEName + "_stat";
+          fprintf (cFile,"%-30s %-5s %-5.0f  ",extrName.c_str() , "gmN" , Nctrl ) ;
+          for ( vector<string>::iterator itProc =  Proc.begin() ; itProc != Proc.end() ; ++itProc) {
+            if ( (*itDDEMemb) == (*itProc) ) fprintf (cFile,"%-6.4f    ", scfac ) ;
+            else                                                     fprintf (cFile,"  -       ");
+          }
+          fprintf (cFile,"\n") ;
+
+        }
+      }
+
       // ... Stat Errors 
+      fprintf (cFile,"----------------------------------------------------------------------------------------------------------------------------------\n");
       int iProc = 0 ;
       for ( int iD=0 ; iD < (signed) Signal    .size() ; ++iD , ++iProc ) { 
         double eStaRel = 1. ;
         if (Signal.at(iD)>0.) eStaRel += eStatSignal.at(iD) / Signal.at(iD) ;
         string statName = "stat_" + Proc.at(iProc) ;
         string statType = "lnN" ;   
-        fprintf (cFile,"%-25s %-5s ",statName.c_str() , statType.c_str() ) ;
+        fprintf (cFile,"%-30s %-5s        ",statName.c_str() , statType.c_str() ) ;
         for ( int jProc = 0 ; jProc < (signed) Proc.size() ; ++jProc ) {
-           if ( jProc == iProc ) fprintf (cFile,"%-5.3f     ",eStaRel) ;
+           if ( jProc == iProc ) {
+             if ( Signal.at(iD)>0.) fprintf (cFile,"%-5.3f     ",eStaRel) ;
+             else                   fprintf (cFile,"  inf     ");
+           }
            else                  fprintf (cFile,"  -       ");
         } 
         fprintf (cFile,"\n") ; 
       }
       for ( int iD=0 ; iD < (signed) Background.size() ; ++iD , ++iProc ) { 
+        // skip if DDE
+        bool isDDE = false ;
+        for ( vector<SyDDEstim_t>::iterator itDDE = (Cfg.GetSyDDEstim())->begin() ; itDDE != (Cfg.GetSyDDEstim())->end() ; ++itDDE ) {
+          for ( vector<string>::iterator itDDEMemb = (itDDE->SyDDEMember).begin() ; itDDEMemb != (itDDE->SyDDEMember).end() ; ++itDDEMemb ) {
+            if ( BgProc.at(iD) == (*itDDEMemb) ) {
+              for ( vector<string>::iterator itDDECard = (itDDE->SyDDECards).begin() ; itDDECard != (itDDE->SyDDECards).end() ; ++itDDECard ) {
+                float N (0), s(0), u(0) ;
+		getsyst(*itDDECard,Cfg.GetHiggsMass(),N,s,u);
+                if ( s>0 ) isDDE = true ;
+              }
+            }            
+          }
+        }
+        if ( isDDE ) continue;
         double eStaRel = 1. ;
         if (Background.at(iD)>0.) eStaRel += eStatBkgd.at(iD) / Background.at(iD) ;
         string statName = "stat_" + Proc.at(iProc) ;
         string statType = "lnN" ;   
-        fprintf (cFile,"%-25s %-5s ",statName.c_str() , statType.c_str() ) ;
+        fprintf (cFile,"%-30s %-5s        ",statName.c_str() , statType.c_str() ) ;
         for ( int jProc = 0 ; jProc < (signed) Proc.size() ; ++jProc ) {
-           if ( jProc == iProc ) fprintf (cFile,"%-5.3f     ",eStaRel) ;
+           if ( jProc == iProc ) {
+             if (Background.at(iD)>0.) fprintf (cFile,"%-5.3f     ",eStaRel) ;
+             else                      fprintf (cFile,"  inf     "); 
+           }
            else                  fprintf (cFile,"  -       ");
         } 
         fprintf (cFile,"\n") ; 

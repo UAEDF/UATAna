@@ -60,6 +60,7 @@ class OutTTree_t    {
   Float_t   SplitFrac ;
   string    CutName   ;
   string    DataName  ; 
+  vector<string> BranchList ;    
 
   string    OutNOne  ;
   string    OutNTwo  ;  

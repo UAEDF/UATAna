@@ -304,6 +304,13 @@ void UATAnaConfig::ReadCfg(TString CfgName) {
       OTT.Split     = atoi(Elements.at(2).c_str()) ; 
       OTT.SplitFrac = atof(Elements.at(3).c_str()) ; 
       OTT.CutName   = Elements.at(4) ;
+      if ( Elements.size() >= 6) {
+        cout <<  Elements.at(6) << endl ;
+        vector<string> OTBL = UATokenize( Elements.at(6) , ':' );
+        for (vector<string>::iterator iOTBL = OTBL.begin() ; iOTBL != OTBL.end() ; ++iOTBL ) {          
+          (OTT.BranchList).push_back( *iOTBL ) ; 
+        }  
+      }  
       vector<string> OTTDL = UATokenize( Elements.at(5) , ':' );
       for (vector<string>::iterator iOTTD = OTTDL.begin() ; iOTTD != OTTDL.end() ; ++iOTTD ) {
         OTT.DataName = *iOTTD ; 
@@ -430,8 +437,8 @@ void UATAnaConfig::ReadCfg(TString CfgName) {
       CtrlPlot_t CtrlPlot;
       CtrlPlot.NickName   = Elements.at(1);
       CtrlPlot.nBins      = atoi(Elements.at(2).c_str()) ;
-      CtrlPlot.xMin       = atoi(Elements.at(3).c_str()) ;
-      CtrlPlot.xMax       = atoi(Elements.at(4).c_str()) ;
+      CtrlPlot.xMin       = atof(Elements.at(3).c_str()) ;
+      CtrlPlot.xMax       = atof(Elements.at(4).c_str()) ;
       CtrlPlot.kLogY      = atoi(Elements.at(5).c_str()) ;
       CtrlPlot.Expression = Elements.at(6);
       SetCutLevels(Elements.at(7),CtrlPlot.CCNickName);
@@ -479,7 +486,7 @@ void UATAnaConfig::ReadCfg(TString CfgName) {
       }
     }
 
-   // SyDDEstim
+    // SyDDEstim
     if ( Elements.at(0) == "SyDDEstim" ) {
       SyDDEstim_t SyDDE ;
       SyDDE.SyDDEName  = Elements.at(1) ;
@@ -517,6 +524,7 @@ void UATAnaConfig::ReadCfg(TString CfgName) {
 
 
 
+
   } 
 
   return;
@@ -538,6 +546,9 @@ void UATAnaConfig::Print(){
     cout << " --> TreeName: " << iD->TreeName << endl;
     cout << " --> Signal: "<<iD->Signal<<" Bkgd: "<< iD->Bkgd << " Data : "<< iD->Data << endl;
   }
+
+  cout << "----------------------------------------------------------" << endl;
+
 
 
 }

@@ -108,6 +108,12 @@ void UATAnaReader::Analyze( UATAnaConfig& Cfg , bool& bWTree ) {
          }
          (itOTT->OutNOne) += ".root" ;
          // Create Clone
+         if ( (itOTT->BranchList).size() > 0 ) {
+           Tree->SetBranchStatus("*",0);
+           for ( vector<string>::iterator itBranch = (itOTT->BranchList).begin() ; itBranch != (itOTT->BranchList).end() ; ++itBranch ) {
+             Tree->SetBranchStatus("*",TString(*itBranch)); 
+           }
+         }
          (itOTT->OutFOne) = new TFile((itOTT->OutNOne).c_str(),"RECREATE");     
          (itOTT->OutTOne) = Tree->CloneTree(0);
          (itOTT->OutTOne)->SetName((itOTT->TreeName).c_str());
@@ -116,6 +122,7 @@ void UATAnaReader::Analyze( UATAnaConfig& Cfg , bool& bWTree ) {
            (itOTT->OutTTwo) = Tree->CloneTree(0);
            (itOTT->OutTTwo)->SetName((itOTT->TreeName).c_str());
          }
+         Tree->SetBranchStatus("*",1);
        }
      }
 

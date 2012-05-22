@@ -18,7 +18,7 @@ void UATAna(TString Cfg = "Config.cfg" , TString Steps = "R"){
 
   UATAnaConfig Config;
   Config.ReadCfg(Cfg);
-//  Config.Print();
+  Config.Print();
 
   if (    Steps.Contains ('R') 
        || Steps.Contains ('T') ) {

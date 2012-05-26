@@ -151,10 +151,10 @@ void UATAnaConfig::ReadCfg(TString CfgName) {
     return ;
   }
 
-  char str[1000];
+  char str[2000];
   while( Cfg ) {
 
-    Cfg.getline(str,1000);
+    Cfg.getline(str,2000);
     if(!Cfg) continue;
     istringstream iss(str);
     if (iss.str().find("#") != string::npos ) continue;
@@ -305,8 +305,7 @@ void UATAnaConfig::ReadCfg(TString CfgName) {
       OTT.SplitFrac = atof(Elements.at(3).c_str()) ; 
       OTT.CutName   = Elements.at(4) ;
       if ( Elements.size() >= 6) {
-        cout <<  Elements.at(6) << endl ;
-        vector<string> OTBL = UATokenize( Elements.at(6) , ':' );
+        vector<string> OTBL = UATokenize( Elements.at(5) , ':' );
         for (vector<string>::iterator iOTBL = OTBL.begin() ; iOTBL != OTBL.end() ; ++iOTBL ) {          
           (OTT.BranchList).push_back( *iOTBL ) ; 
         }  

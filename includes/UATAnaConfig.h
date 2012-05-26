@@ -204,12 +204,14 @@ class UATAnaConfig {
   string               StatPrefix;
   string               StatMiddle;
   string               StatSuffix;
+
+   bool                MaskData;
  
 
 
   public:
 
-  UATAnaConfig(){ Reset(); }
+  UATAnaConfig(){ Reset(); MaskData = false ; }
   virtual ~UATAnaConfig(){ Reset() ; }
 
   void Reset();
@@ -238,7 +240,7 @@ class UATAnaConfig {
   string                 GetStatPrefix()      { return  StatPrefix   ; }
   string                 GetStatMiddle()      { return  StatMiddle   ; }
   string                 GetStatSuffix()      { return  StatSuffix   ; }
-
+  bool                   GetMaskData()        { return  MaskData     ; }  
 
 
 };

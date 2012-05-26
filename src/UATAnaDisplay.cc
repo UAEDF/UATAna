@@ -952,8 +952,10 @@ void UATAnaDisplay::LimitCard ( UATAnaConfig& Cfg ) {
           int iH = 0 ;
           for ( vector<InputData_t>::iterator itD = (Cfg.GetInputData())->begin() ; itD != (Cfg.GetInputData())->end() ; ++itD , ++iH) {
             if ( itD->Data  ) { 
-               Data      +=      (((SCflow.at(iSC)).CutFlow).at(iH))->GetBinContent((((SCflow.at(iSC)).CutFlow).at(iH))->GetNbinsX()) ;
-               eStatData += pow( (((SCflow.at(iSC)).CutFlow).at(iH))->GetBinError((((SCflow.at(iSC)).CutFlow).at(iH))->GetNbinsX()) , 2 ) ;
+              if ( ! Cfg.GetMaskData() ) {
+                Data      +=      (((SCflow.at(iSC)).CutFlow).at(iH))->GetBinContent((((SCflow.at(iSC)).CutFlow).at(iH))->GetNbinsX()) ;
+                eStatData += pow( (((SCflow.at(iSC)).CutFlow).at(iH))->GetBinError((((SCflow.at(iSC)).CutFlow).at(iH))->GetNbinsX()) , 2 ) ;
+              }
             }
             if ( itD->Signal) {
               bool iSAssoc = false ;
@@ -1013,11 +1015,18 @@ void UATAnaDisplay::LimitCard ( UATAnaConfig& Cfg ) {
                eStatBkgd .push_back( eBkgd );
                Proc.push_back( itD->NickName) ;
                BgProc.push_back( itD->NickName) ;
+               if ( Cfg.GetMaskData() ) {
+                 Data += Bkgd ;
+               }
              }
           } 
         }
       } 
-
+      if ( Cfg.GetMaskData() && Data > 0. ) {
+        eStatData = sqrt(Data) ;
+      }
+  
+      
 
       LimitCardName = "LimitCards/" + Cfg.GetTAnaName() ;
       if      ( iDG == -1 ) LimitCardName += "_AllData" ;

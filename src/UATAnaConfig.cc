@@ -521,8 +521,10 @@ void UATAnaConfig::ReadCfg(TString CfgName) {
       StatSuffix = Elements.at(1) ;
     }
 
-
-
+    // MaskData in LimitCards
+    if (  Elements.at(0) == "MaskData" ) {
+      MaskData = atoi(Elements.at(1).c_str()) ;
+    }
 
   } 
 

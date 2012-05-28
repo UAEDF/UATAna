@@ -61,6 +61,7 @@ void UATAnaDisplay::Init ( UATAnaConfig& Cfg ) {
 
   setTDRStyle();
 
+
   string fileName = Cfg.GetOutDir() + "/" + Cfg.GetTAnaName()+".root";
   File = new TFile(fileName.c_str(),"OPEN");
 
@@ -91,6 +92,7 @@ void UATAnaDisplay::Init ( UATAnaConfig& Cfg ) {
   gDirectory->cd   ("DataGroups");
   for ( vector<DataGroup_t>::iterator itDG = (Cfg.GetDataGroups())->begin() ; itDG !=  (Cfg.GetDataGroups())->end() ; ++itDG ) {
     for ( vector<BaseGroup_t>::iterator itBG = (itDG->Members).begin() ; itBG != (itDG->Members).end() ; ++itBG  ) {
+
       TString HistName = "CutFlow_"+itDG->GroupName+"_"+itBG->BaseName ;
       CCflowGroup_.push_back( (TH1F*) gDirectory->Get(HistName) ) ;
     }
@@ -152,7 +154,6 @@ void UATAnaDisplay::Init ( UATAnaConfig& Cfg ) {
         for ( vector<BaseGroup_t>::iterator itBG = (itDG->Members).begin() ; itBG != (itDG->Members).end() ; ++itBG  ) {
           TString HistName = "PlotCC_"+itCP->NickName+"_"+*itCC+"_"+itDG->GroupName+"_"+itBG->BaseName ;
           PlotCCGroup_.push_back ( (TH1F*) gDirectory->Get(HistName) ) ;
-
         }
       } 
 
@@ -192,6 +193,7 @@ void UATAnaDisplay::Init ( UATAnaConfig& Cfg ) {
 
   }
 
+
   // Clone everyhting in gROOT:
  
   gROOT->cd();
@@ -223,7 +225,6 @@ void UATAnaDisplay::Init ( UATAnaConfig& Cfg ) {
   CCflow_.clear();
   CCflowGroup_.clear();
 
-
   for (vector<ScanFlow_t>::iterator it = SCflow_.begin() ; it != SCflow_.end() ; ++it ) {
     for (vector<TH1F*>::iterator itH = (it->CutFlow).begin() ; itH != (it->CutFlow).end() ; ++itH )  delete (*itH) ;
     (it->CutFlow).clear();  
@@ -237,10 +238,12 @@ void UATAnaDisplay::Init ( UATAnaConfig& Cfg ) {
   SCflowGroup_.clear();
 
 
+/*
   for (vector<TH1F*>::iterator it = PlotCC_.begin() ; it != PlotCC_.end() ; ++it ) delete (*it) ;
   for (vector<TH1F*>::iterator it = PlotSC_.begin() ; it != PlotSC_.end() ; ++it ) delete (*it) ;
   for (vector<TH1F*>::iterator it = PlotCCGroup_.begin() ; it != PlotCCGroup_.end() ; ++it ) delete (*it) ;
   for (vector<TH1F*>::iterator it = PlotSCGroup_.begin() ; it != PlotSCGroup_.end() ; ++it ) delete (*it) ;
+*/
   PlotCC_.clear();
   PlotSC_.clear();
   PlotCCGroup_.clear();
@@ -766,6 +769,7 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg , bool SaveFig ) {
                   if ( itBG->Bkgd  ) { vBkgd.push_back   ( (TH1F*) (PlotCCGroup.at(iH))->Clone() ) ; vLBkgd  .push_back(itBG->BaseName) ; vCBkgd.push_back(itBG->Color) ; }
                   if ( itBG->Signal) { 
                     bool iSAssoc = false ;
+/*
                     if (  (((Cfg.GetScanCuts())->at(iGroup-1)).SignList).size() != 0 ) {
                       for ( vector<string>::iterator itSL  = (((Cfg.GetScanCuts())->at(iGroup-1)).SignList).begin() ;
                                                     itSL != (((Cfg.GetScanCuts())->at(iGroup-1)).SignList).end()   ; ++itSL ) {
@@ -774,6 +778,9 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg , bool SaveFig ) {
                          } 
                       }
                     } else {iSAssoc = true;} 
+*/
+ 
+                    iSAssoc = true; 
                     if (iSAssoc) { vSignal.push_back ( (TH1F*) (PlotCCGroup.at(iH))->Clone() ) ; vLSignal.push_back(itBG->BaseName) ; }
                   }
                 }
@@ -860,6 +867,7 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg , bool SaveFig ) {
                   if ( itBG->Bkgd  ) { vBkgd.push_back   ( (TH1F*) (PlotSCGroup.at(iH))->Clone() ) ; vLBkgd  .push_back(itBG->BaseName) ; vCBkgd.push_back(itBG->Color) ; }
                   if ( itBG->Signal) {
                     bool iSAssoc = false ; 
+/*
                     if (  (((Cfg.GetScanCuts())->at(iGroup-1)).SignList).size() != 0 ) {
                        for ( vector<string>::iterator itSL  = (((Cfg.GetScanCuts())->at(iGroup-1)).SignList).begin() ;
                                                       itSL != (((Cfg.GetScanCuts())->at(iGroup-1)).SignList).end()   ; ++itSL ) {
@@ -868,6 +876,8 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg , bool SaveFig ) {
                          } 
                        }
                     } else {iSAssoc = true;} 
+*/
+                    iSAssoc = true ;
                     if (iSAssoc) { vSignal.push_back ( (TH1F*) (PlotSCGroup.at(iH))->Clone() ) ; vLSignal.push_back(itBG->BaseName) ; }
                   }
                 }

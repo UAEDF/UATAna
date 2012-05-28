@@ -125,7 +125,7 @@ class CtrlPlot_t : public TreeFormula_t {
   Int_t          nBins      ;
   Float_t        xMin       ;
   Float_t        xMax       ;
-  Bool_t         kLogY      ;
+  Int_t          kLogY      ;
   vector<string> CCNickName ;
   vector<string> SCNickName ;
 };

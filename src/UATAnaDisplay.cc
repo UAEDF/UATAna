@@ -257,7 +257,7 @@ void UATAnaDisplay::Init ( UATAnaConfig& Cfg ) {
 
 //----------------------------------- PlotStack() -------------------------------------
 
-void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutLevel , bool  kLogY ,
+void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutLevel , int kLogYIN ,
                                vector<TH1F*>&  vData  , vector<TH1F*>&  vSignal  , vector<TH1F*>&  vBkgd ,
                                vector<string>  vLData , vector<string>  vLSignal , vector<string>  vLBkgd ,
                                vector<int>     vCData , vector<int>     vCSignal , vector<int>     vCBkgd ,
@@ -266,8 +266,28 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
 //                             string  XAxisT = "Var" , string  YAxisT = "Events", string Title = "Title"      
                              ) {
 
+ int kLokMin = 0 ;
+ int kLokMax = 0 ;
+ if ( kLogYIN == 0 ) {
+   kLokMin = 0 ;
+   kLokMax = 0 ;  
+ }
+ if ( kLogYIN == 1 ) {
+   kLokMin = 1 ;
+   kLokMax = 1 ;
+ }
+ if ( kLogYIN == 2 ) {
+   kLokMin = 0 ;
+   kLokMax = 1 ;
+ }
+ for ( int ikLogY = kLokMin ; ikLogY <= kLokMax ; ++ikLogY ) { 
+
+  bool kLogY = ikLogY ;
+
   TString  CanName = DataSet+"_"+CutGroup ;
   if ( CutLevel != "NONE" ) CanName += "_"+CutLevel ;
+  if ( ! kLogY ) CanName += "_Lin" ; 
+  else           CanName += "_Log" ;   
   TCanvas* Canvas  = new TCanvas( CanName , CanName , 600 , 600 );
 
   gPad->SetRightMargin(0.05);
@@ -417,7 +437,9 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
      Canvas->SaveAs(Dir+CanName+".png"); 
      Canvas->SaveAs(Dir+CanName+".pdf"); 
    }
-   return ;
+ 
+ }
+ return ;
 }
 
 

@@ -29,7 +29,7 @@ class UATAnaDisplay {
   vector<TH1F*> PlotCCGroup ;
   vector<TH1F*> PlotSCGroup ;
 
-  void PlotStack( string  , string  , string  , bool  ,
+  void PlotStack( string  , string  , string  , int   ,
                   vector<TH1F*>&  , vector<TH1F*>&  , vector<TH1F*>&  ,
                   vector<string>  , vector<string>  , vector<string>  ,
                   vector<int>     , vector<int>     , vector<int>     ,

@@ -33,7 +33,8 @@ class UATAnaDisplay {
                   vector<TH1F*>&  , vector<TH1F*>&  , vector<TH1F*>&  ,
                   vector<string>  , vector<string>  , vector<string>  ,
                   vector<int>     , vector<int>     , vector<int>     ,
-                  string = "Var"  , string = "Events" , string =""
+                  string = "Var"  , string = "Events" , string =""    ,
+                  bool = 0 
                 ) ;
 
   void PrintYields ( string  , string  , vector<string>  ,
@@ -47,7 +48,7 @@ class UATAnaDisplay {
 
   void Init     ( UATAnaConfig& );
   void Yields   ( UATAnaConfig& , bool );
-  void CPlot    ( UATAnaConfig& );
+  void CPlot    ( UATAnaConfig& , bool );
   void LimitCard( UATAnaConfig&  ); 
 
 };

@@ -258,7 +258,8 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
                                vector<TH1F*>&  vData  , vector<TH1F*>&  vSignal  , vector<TH1F*>&  vBkgd ,
                                vector<string>  vLData , vector<string>  vLSignal , vector<string>  vLBkgd ,
                                vector<int>     vCData , vector<int>     vCSignal , vector<int>     vCBkgd ,
-                               string  XAxisT         , string  YAxisT           , string Title                
+                               string  XAxisT         , string  YAxisT           , string Title           ,
+                               bool SaveFig     
 //                             string  XAxisT = "Var" , string  YAxisT = "Events", string Title = "Title"      
                              ) {
 
@@ -400,12 +401,19 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
    for (int iD=0 ; iD < (signed) vBkgdStack.size()    ; ++iD ) Legend->AddEntry( vBkgdStack  .at(iD) , (vLBkgd  .at(iD)).c_str() , "f" );  
    Legend->Draw("same");
 
-   TLatex* TLTitle = new TLatex(.15,.94,"Title.c_str()");
+   TLatex* TLTitle = new TLatex(.15,.94,Title.c_str());
    TLTitle ->SetTextSize(.04);
    TLTitle ->SetNDC(1);
    TLTitle ->Draw("same");
-  
-
+ 
+   if ( SaveFig ) {
+     TString Dir = "plots/" + Title + "/" ;
+     if (!gSystem->OpenDirectory(Dir)) gSystem->MakeDirectory(Dir);
+      
+     Canvas->SaveAs(Dir+CanName+".gif"); 
+     Canvas->SaveAs(Dir+CanName+".png"); 
+     Canvas->SaveAs(Dir+CanName+".pdf"); 
+   }
    return ;
 }
 
@@ -644,7 +652,7 @@ void UATAnaDisplay::Yields ( UATAnaConfig& Cfg , bool bPlot ) {
 
 //----------------------------------- CPlot() ------------------------------------------
 
-void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg ) {
+void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg , bool SaveFig ) {
 
 
   int iContinue = 1 ;
@@ -736,7 +744,7 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg ) {
               }
             }  
           }  
-          PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->NickName ) ;
+          PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->NickName , "Events", Cfg.GetTAnaName() , SaveFig ) ;
         }
 
       } else {
@@ -772,7 +780,7 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg ) {
               }
             }
           }
-          PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->NickName ) ;
+          PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->NickName , "Events" ,  Cfg.GetTAnaName() , SaveFig) ;
         }
    
  
@@ -829,7 +837,7 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg ) {
             }
            }  
           }  
-          PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->NickName ) ;
+          PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->NickName , "Events" ,  Cfg.GetTAnaName() , SaveFig ) ;
         }
 
       } else {
@@ -867,7 +875,7 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg ) {
             }
            }
           }
-          PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->NickName ) ;
+          PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->NickName , "Events" ,  Cfg.GetTAnaName() , SaveFig ) ;
         }
       } 
 

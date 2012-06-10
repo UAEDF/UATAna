@@ -424,7 +424,8 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
    for (int iD=0 ; iD < (signed) vBkgdStack.size()    ; ++iD ) Legend->AddEntry( vBkgdStack  .at(iD) , (vLBkgd  .at(iD)).c_str() , "f" );  
    Legend->Draw("same");
 
-   TLatex* TLTitle = new TLatex(.15,.94,Title.c_str());
+   //TLatex* TLTitle = new TLatex(.15,.94,Title.c_str());
+   TLatex* TLTitle = new TLatex(.15,.94,"CMS Preliminary (L=2.4 fb-1)");
    TLTitle ->SetTextSize(.04);
    TLTitle ->SetNDC(1);
    TLTitle ->Draw("same");

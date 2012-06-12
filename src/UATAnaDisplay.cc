@@ -5,13 +5,14 @@
 #include <TStyle.h>
 #include <TSystem.h>
 #include <TLegend.h>
+#include <TFrame.h>
 #include <TText.h>
 #include <TLatex.h>
 
 #include <TMath.h>
 
 #include "src/tdrstyle.C"
-
+#include "src/LatinoStyle2.C"
 
 //----------------------------------- Tools ------------------------------------------
 
@@ -59,8 +60,10 @@ void getsyst(TString cname, float mass, float &N, float &s, float &u) {
 
 void UATAnaDisplay::Init ( UATAnaConfig& Cfg ) {
 
-  setTDRStyle();
-
+  //setTDRStyle();
+  LatinoStyle2();
+  gStyle->SetOptStat(0);
+  gStyle->SetOptTitle(0); 
 
   string fileName = Cfg.GetOutDir() + "/" + Cfg.GetTAnaName()+".root";
   File = new TFile(fileName.c_str(),"OPEN");
@@ -263,7 +266,7 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
                                vector<int>     vCData , vector<int>     vCSignal , vector<int>     vCBkgd ,
                                string  XAxisT         , string  YAxisT           , string Title           ,
                                float           fLumi  , bool SaveFig     
-//                             string  XAxisT = "Var" , string  YAxisT = "Events", string Title = "Title"      
+//                             string  XAxisT = "Var" , string  YAxisT = "entries / bin", string Title = "Title"      
                              ) {
 
  int kLokMin = 0 ;
@@ -318,9 +321,11 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
        iStack->Add(vSignal.at(iD2Sum));
      }
      if ( vCSignal.size() > 0) {
-       iStack->SetMarkerColor(vCSignal.at(iD));
+       //iStack->SetMarkerColor(vCSignal.at(iD));
+       iStack->SetMarkerColor(kRed+1);
      } else {
-       iStack->SetLineColor(iD+1);
+       //iStack->SetLineColor(iD+1);
+       iStack->SetLineColor(kRed+1);
      }
      iStack->SetLineWidth(2);
      vSignalStack.push_back( (TH1F*) iStack->Clone() );
@@ -350,9 +355,9 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
    if ( vSignalStack.size() > 0 ) hMax = TMath::Max( vSignalStack.at(0)->GetMaximum() , hMax );
 
    if (kLogY) {
-     if ( vBkgdStack  .size() > 0 ) vBkgdStack  .at(0)->GetYaxis()->SetRangeUser( 0.01 , 10*hMax);
-     if ( vDataStack  .size() > 0 ) vDataStack  .at(0)->GetYaxis()->SetRangeUser( 0.01 , 10*hMax);
-     if ( vSignalStack.size() > 0 ) vSignalStack.at(0)->GetYaxis()->SetRangeUser( 0.01 , 10*hMax);
+     if ( vBkgdStack  .size() > 0 ) vBkgdStack  .at(0)->GetYaxis()->SetRangeUser( 0.01 , 15*hMax);
+     if ( vDataStack  .size() > 0 ) vDataStack  .at(0)->GetYaxis()->SetRangeUser( 0.01 , 15*hMax);
+     if ( vSignalStack.size() > 0 ) vSignalStack.at(0)->GetYaxis()->SetRangeUser( 0.01 , 15*hMax);
    } else {
      if ( vBkgdStack  .size() > 0 ) vBkgdStack  .at(0)->GetYaxis()->SetRangeUser( 0.   , 1.4*hMax);
      if ( vDataStack  .size() > 0 ) vDataStack  .at(0)->GetYaxis()->SetRangeUser( 0.   , 1.4*hMax);
@@ -367,9 +372,9 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
    if ( vDataStack  .size() > 0 ) vDataStack  .at(0)->GetYaxis()->SetTitle(YAxisT.c_str());
    if ( vSignalStack.size() > 0 ) vSignalStack.at(0)->GetYaxis()->SetTitle(YAxisT.c_str());
 
-   if ( vBkgdStack  .size() > 0 ) vBkgdStack  .at(0)->GetXaxis()->SetTitleOffset(0.9);
-   if ( vDataStack  .size() > 0 ) vDataStack  .at(0)->GetXaxis()->SetTitleOffset(0.9);
-   if ( vSignalStack.size() > 0 ) vSignalStack.at(0)->GetXaxis()->SetTitleOffset(0.9);
+   if ( vBkgdStack  .size() > 0 ) vBkgdStack  .at(0)->GetXaxis()->SetTitleOffset(1.1);
+   if ( vDataStack  .size() > 0 ) vDataStack  .at(0)->GetXaxis()->SetTitleOffset(1.1);
+   if ( vSignalStack.size() > 0 ) vSignalStack.at(0)->GetXaxis()->SetTitleOffset(1.1);
    if ( vBkgdStack  .size() > 0 ) vBkgdStack  .at(0)->GetYaxis()->SetTitleOffset(1.3);
    if ( vDataStack  .size() > 0 ) vDataStack  .at(0)->GetYaxis()->SetTitleOffset(1.3);
    if ( vSignalStack.size() > 0 ) vSignalStack.at(0)->GetYaxis()->SetTitleOffset(1.3);
@@ -418,26 +423,37 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
    Legend->SetBorderSize(0);
    Legend->SetFillColor(0);
    Legend->SetFillStyle(0);
+   Legend->SetTextFont(42); 
    Legend->SetTextSize(0.04);
-   for (int iD=0 ; iD < (signed) vDataStack.size()    ; ++iD ) Legend->AddEntry( vDataStack  .at(iD) , (vLData  .at(iD)).c_str() , "p" ); 
-   for (int iD=0 ; iD < (signed) vSignalStack.size()  ; ++iD ) Legend->AddEntry( vSignalStack.at(iD) , (vLSignal.at(iD)).c_str() , "l" );
-   for (int iD=0 ; iD < (signed) vBkgdStack.size()    ; ++iD ) Legend->AddEntry( vBkgdStack  .at(iD) , (vLBkgd  .at(iD)).c_str() , "f" );  
+   for (int iD=0 ; iD < (signed) vDataStack.size()    ; ++iD ) Legend->AddEntry( vDataStack  .at(iD) , TString(" ")+(vLData  .at(iD)).c_str() , "p" ); 
+   for (int iD=0 ; iD < (signed) vSignalStack.size()  ; ++iD ) Legend->AddEntry( vSignalStack.at(iD) , TString(" ")+(vLSignal.at(iD)).c_str() , "l" );
+   for (int iD=0 ; iD < (signed) vBkgdStack.size()    ; ++iD ) Legend->AddEntry( vBkgdStack  .at(iD) , TString(" ")+(vLBkgd  .at(iD)).c_str() , "f" );  
    Legend->Draw("same");
 
    //TLatex* TLTitle = new TLatex(.15,.94,Title.c_str());
-   TLatex* TLTitle = new TLatex(.15,.94,"CMS Preliminary");
+   TLatex* TLTitle = new TLatex(.15,.95,"CMS Preliminary");
    TLTitle ->SetTextSize(.04);
+   TLTitle ->SetTextAlign(12);
    TLTitle ->SetNDC(1);
+   TLTitle ->SetTextFont(42); 
    TLTitle ->Draw("same");
 
    char LumiText[50];
    sprintf ( LumiText , "L_{int} = %4.1f fb^{-1}", fLumi/1000. );
    //TLatex* Lumi = new TLatex(.75,.94,"L_{int} = 2.4 fb^{-1}");
-   TLatex* Lumi = new TLatex(.75,.94,LumiText);
+   TLatex* Lumi = new TLatex(.95,.95,LumiText);
    Lumi ->SetTextSize(.04);
+   Lumi->SetTextAlign(32);
    Lumi ->SetNDC(1);
+   Lumi ->SetTextFont(42);   
    Lumi ->Draw("same");
  
+   Canvas->Update();
+   Canvas->GetFrame()->DrawClone();
+   Canvas->RedrawAxis();
+   Canvas->Modified();
+   Canvas->Update();
+
    if ( SaveFig ) {
      TString Dir = "plots/" + Title + "/" ;
      if (!gSystem->OpenDirectory(Dir)) gSystem->MakeDirectory(Dir);
@@ -778,7 +794,7 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg , bool SaveFig ) {
               }
             }  
           }  
-          PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->XaxisTitle , "Events", Cfg.GetTAnaName() , Cfg.GetTargetLumi() , SaveFig ) ;
+          PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->XaxisTitle , "entries / bin", Cfg.GetTAnaName() , Cfg.GetTargetLumi() , SaveFig ) ;
         }
 
       } else {
@@ -812,13 +828,13 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg , bool SaveFig ) {
 */
  
                     iSAssoc = true; 
-                    if (iSAssoc) { vSignal.push_back ( (TH1F*) (PlotCCGroup.at(iH))->Clone() ) ; vLSignal.push_back(itBG->BaseName) ; }
+                    if (iSAssoc) { vSignal.push_back ( (TH1F*) (PlotCCGroup.at(iH))->Clone() ) ; vLSignal.push_back(Cfg.GetSignalName() ) ; } //vLSignal.push_back(itBG->BaseName) ; }
                   }
                 }
               }
             }
           }
-          PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->XaxisTitle , "Events" ,  Cfg.GetTAnaName() , Cfg.GetTargetLumi() , SaveFig) ;
+          PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->XaxisTitle , "entries / bin" ,  Cfg.GetTAnaName() , Cfg.GetTargetLumi() , SaveFig) ;
         }
    
  
@@ -875,7 +891,7 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg , bool SaveFig ) {
             }
            }  
           }  
-          PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->XaxisTitle , "Events" ,  Cfg.GetTAnaName() , Cfg.GetTargetLumi() ,  SaveFig ) ;
+          PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->XaxisTitle , "entries / bin" ,  Cfg.GetTAnaName() , Cfg.GetTargetLumi() ,  SaveFig ) ;
         }
 
       } else {
@@ -909,14 +925,14 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg , bool SaveFig ) {
                     } else {iSAssoc = true;} 
 */
                     iSAssoc = true ;
-                    if (iSAssoc) { vSignal.push_back ( (TH1F*) (PlotSCGroup.at(iH))->Clone() ) ; vLSignal.push_back(itBG->BaseName) ; }
+                    if (iSAssoc) { vSignal.push_back ( (TH1F*) (PlotSCGroup.at(iH))->Clone() ) ;  vLSignal.push_back(Cfg.GetSignalName() ) ; } // vLSignal.push_back(itBG->BaseName) ; }
                   }
                 }
               }
             }
            }
           }
-          PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->XaxisTitle , "Events" ,  Cfg.GetTAnaName() , Cfg.GetTargetLumi() , SaveFig ) ;
+          PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->XaxisTitle , "entries / bin" ,  Cfg.GetTAnaName() , Cfg.GetTargetLumi() , SaveFig ) ;
         }
       } 
 

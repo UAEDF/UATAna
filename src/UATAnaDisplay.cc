@@ -262,7 +262,7 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
                                vector<string>  vLData , vector<string>  vLSignal , vector<string>  vLBkgd ,
                                vector<int>     vCData , vector<int>     vCSignal , vector<int>     vCBkgd ,
                                string  XAxisT         , string  YAxisT           , string Title           ,
-                               bool SaveFig     
+                               float           fLumi  , bool SaveFig     
 //                             string  XAxisT = "Var" , string  YAxisT = "Events", string Title = "Title"      
                              ) {
 
@@ -425,10 +425,18 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
    Legend->Draw("same");
 
    //TLatex* TLTitle = new TLatex(.15,.94,Title.c_str());
-   TLatex* TLTitle = new TLatex(.15,.94,"CMS Preliminary (L=2.4 fb-1)");
+   TLatex* TLTitle = new TLatex(.15,.94,"CMS Preliminary");
    TLTitle ->SetTextSize(.04);
    TLTitle ->SetNDC(1);
    TLTitle ->Draw("same");
+
+   char LumiText[50];
+   sprintf ( LumiText , "L_{int} = %4.1f fb^{-1}", fLumi/1000. );
+   //TLatex* Lumi = new TLatex(.75,.94,"L_{int} = 2.4 fb^{-1}");
+   TLatex* Lumi = new TLatex(.75,.94,LumiText);
+   Lumi ->SetTextSize(.04);
+   Lumi ->SetNDC(1);
+   Lumi ->Draw("same");
  
    if ( SaveFig ) {
      TString Dir = "plots/" + Title + "/" ;
@@ -770,7 +778,7 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg , bool SaveFig ) {
               }
             }  
           }  
-          PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->NickName , "Events", Cfg.GetTAnaName() , SaveFig ) ;
+          PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->XaxisTitle , "Events", Cfg.GetTAnaName() , Cfg.GetTargetLumi() , SaveFig ) ;
         }
 
       } else {
@@ -810,7 +818,7 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg , bool SaveFig ) {
               }
             }
           }
-          PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->NickName , "Events" ,  Cfg.GetTAnaName() , SaveFig) ;
+          PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->XaxisTitle , "Events" ,  Cfg.GetTAnaName() , Cfg.GetTargetLumi() , SaveFig) ;
         }
    
  
@@ -867,7 +875,7 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg , bool SaveFig ) {
             }
            }  
           }  
-          PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->NickName , "Events" ,  Cfg.GetTAnaName() , SaveFig ) ;
+          PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->XaxisTitle , "Events" ,  Cfg.GetTAnaName() , Cfg.GetTargetLumi() ,  SaveFig ) ;
         }
 
       } else {
@@ -908,7 +916,7 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg , bool SaveFig ) {
             }
            }
           }
-          PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->NickName , "Events" ,  Cfg.GetTAnaName() , SaveFig ) ;
+          PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->XaxisTitle , "Events" ,  Cfg.GetTAnaName() , Cfg.GetTargetLumi() , SaveFig ) ;
         }
       } 
 

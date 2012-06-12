@@ -126,6 +126,7 @@ void UATAnaConfig::Reset(){
  
   CommonCuts.clear(); 
 
+  SignalName = "signal";
 
   LimBinName = "1";
   HiggsMass  = -1 ;
@@ -157,7 +158,7 @@ void UATAnaConfig::ReadCfg(TString CfgName) {
     Cfg.getline(str,2000);
     if(!Cfg) continue;
     istringstream iss(str);
-    if (iss.str().find("#") != string::npos ) continue;
+//    if (iss.str().find("#") != string::npos ) continue;
     vector<string> Elements;
     do
     {
@@ -442,9 +443,18 @@ void UATAnaConfig::ReadCfg(TString CfgName) {
       CtrlPlot.Expression = Elements.at(6);
       SetCutLevels(Elements.at(7),CtrlPlot.CCNickName);
       SetCutLevels(Elements.at(8),CtrlPlot.SCNickName);
+      if ( Elements.size() > (signed) 9 ) {
+        CtrlPlot.XaxisTitle = "";
+        for ( int iE = 9 ; iE < (signed) Elements.size() ; ++iE ) CtrlPlot.XaxisTitle += Elements.at(iE) + " " ; 
+      } else {
+        CtrlPlot.XaxisTitle = Elements.at(1);
+      }
       CtrlPlots.push_back( CtrlPlot );    
       //cout << (CtrlPlot.NickName).c_str() << " " << (CtrlPlot.Expression).c_str() << endl;
     } 
+
+
+    if ( Elements.at(0) == "SignalName" ) SignalName = Elements.at(1) ;
 
     // LimitBinName
     if ( Elements.at(0) == "LimBinName") {

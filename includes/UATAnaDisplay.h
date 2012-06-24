@@ -34,7 +34,7 @@ class UATAnaDisplay {
                   vector<string>  , vector<string>  , vector<string>  ,
                   vector<int>     , vector<int>     , vector<int>     ,
                   string = "Var"  , vector<string> = vector<string>() , string =""    ,
-                  float  =0       , bool = 0 
+                  float  =0       , bool = 0        , bool = true
                 ) ;
 
   void PrintYields ( string  , string  , vector<string>  ,

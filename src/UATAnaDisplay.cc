@@ -125,6 +125,7 @@ void UATAnaDisplay::Init ( UATAnaConfig& Cfg ) {
   LatinoStyle2();
   gStyle->SetOptStat(0);
   gStyle->SetOptTitle(0); 
+  gStyle->SetHatchesLineWidth(2);
 
   string fileName = Cfg.GetOutDir() + "/" + Cfg.GetTAnaName()+".root";
   File = new TFile(fileName.c_str(),"OPEN");
@@ -291,7 +292,6 @@ void UATAnaDisplay::Init ( UATAnaConfig& Cfg ) {
     for (vector<TH1F*>::iterator it = PlotSCGroup_.begin() ; it != PlotSCGroup_.end() ; ++it )  PlotSCGroup.push_back ( (TH1F*) (*it)->Clone() ) ; 
   }
 
-  cout << "Hello !!!!!" << endl;
 
   // Clean Temp objects 
   for (vector<TH1F*>::iterator it = CCflow_.begin() ; it != CCflow_.end() ; ++it ) delete (*it) ;
@@ -336,30 +336,12 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
                                vector<string>  vLData , vector<string>  vLSignal , vector<string>  vLBkgd ,
                                vector<int>     vCData , vector<int>     vCSignal , vector<int>     vCBkgd ,
                                string  AxisT          , vector<string> CPExtraText , string Title           ,
-                               float           fLumi  , bool SaveFig     
+                               float           fLumi  , bool SaveFig    ,  bool DrawBgError  
 //                             string  XAxisT = "Var" , string  YAxisT = "entries / bin", string Title = "Title"      
                              ) {
 
-/*
- vector<TH1F*> vData;
- vector<TH1F*> vSignal; 
- vector<TH1F*> vBkgd;
 
-
- // ---- OverFlow Bins 
-
- //bool DrawOvFlBin = false; 
-
- for (int iD=0 ; iD < (signed) vDataIn.size() ; ++iD ) {
-   vData.push_back( DrawOverflow( vDataIn.at(iD) ) );
- }
- for (int iD=0 ; iD < (signed) vSignalIn.size() ; ++iD ) {
-   vSignal.push_back( DrawOverflow( vSignalIn.at(iD) ) );
- }
- for (int iD=0 ; iD < (signed) vBkgdIn.size() ; ++iD ) {
-   vBkgd.push_back( DrawOverflow( vBkgdIn.at(iD) ) );
- }
-*/
+ TH1F* hErr ;
 
  // ---- Lin/Log
 
@@ -461,7 +443,6 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
      if ( vSignalStack.size() > 0 ) vSignalStack.at(0)->GetYaxis()->SetRangeUser( 0.   , 1.55*hMax);
    }
 
-   cout << AxisT << endl;
    vector<string> vAxisT = UATokenize( AxisT , ';' );
    TString XAxisT ;
    if ( (signed) vAxisT.size() == 0 ) XAxisT += AxisT ;
@@ -540,6 +521,15 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
    if        ( vBkgdStack  .size() > 0 ) {
      vBkgdStack.at(0)->DrawCopy("hist");
      for (int iD=1 ; iD < (signed) vBkgdStack.size()    ; ++iD ) vBkgdStack.at(iD)   ->DrawCopy("histsame");  
+     if (DrawBgError) {
+       hErr =  (TH1F*) vBkgdStack.at(0)->Clone() ;
+       hErr->SetFillColor(13);
+       hErr->SetLineColor( 0);
+       hErr->SetFillStyle(3345);
+       hErr->SetMarkerSize(0);
+       hErr->SetMarkerColor(kBlack);
+       hErr->DrawCopy("e2same");
+     }
      for (int iD=0 ; iD < (signed) vSignalStack.size()  ; ++iD ) vSignalStack.at(iD) ->DrawCopy("histsame");  
      for (int iD=0 ; iD < (signed) vDataStack.size()    ; ++iD ) vDataStack.at(iD)   ->DrawCopy("esame");
    } else if ( vSignalStack.size() > 0 ) {
@@ -562,9 +552,10 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
    Legend->SetTextFont(42); 
    Legend->SetTextAlign(12);
    Legend->SetTextSize(0.04);
-   for (int iD=0 ; iD < (signed) vDataStack.size()    ; ++iD ) Legend->AddEntry( vDataStack  .at(iD) , TString(" ")+(vLData  .at(iD)).c_str() , "p" ); 
+   for (int iD=0 ; iD < (signed) vDataStack.size()    ; ++iD ) Legend->AddEntry( vDataStack  .at(iD) , TString(" ")+(vLData  .at(iD)).c_str() , "lp" ); 
    for (int iD=0 ; iD < (signed) vSignalStack.size()  ; ++iD ) Legend->AddEntry( vSignalStack.at(iD) , TString(" ")+(vLSignal.at(iD)).c_str() , "l" );
    for (int iD=0 ; iD < (signed) vBkgdStack.size()    ; ++iD ) Legend->AddEntry( vBkgdStack  .at(iD) , TString(" ")+(vLBkgd  .at(iD)).c_str() , "f" );  
+   if (DrawBgError) Legend->AddEntry( hErr , TString(" #sigma ") , "f");
    Legend->Draw("same");
 
    //TLatex* TLTitle = new TLatex(.15,.94,Title.c_str());
@@ -961,7 +952,30 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg , bool SaveFig ) {
               for ( vector<BaseGroup_t>::iterator itBG = (itDG->Members).begin() ; itBG != (itDG->Members).end() ; ++itBG , ++iH ) {
                 if ( ( *itCC ==  CutLevel ) && ( itDG->GroupName == GroupName ) ) {
                   if ( itBG->Data  ) { vData.push_back   ( (TH1F*) (PlotCCGroup.at(iH))->Clone() ) ; vLData  .push_back(itBG->BaseName) ;  }
-                  if ( itBG->Bkgd  ) { vBkgd.push_back   ( (TH1F*) (PlotCCGroup.at(iH))->Clone() ) ; vLBkgd  .push_back(itBG->BaseName) ; vCBkgd.push_back(itBG->Color) ; }
+                  if ( itBG->Bkgd  ) { 
+                     TH1F* hTmp =  (TH1F*) (PlotCCGroup.at(iH))->Clone() ;
+                     for ( vector<Systematic_t>::iterator itSyst = (Cfg.GetSystematic())->begin() ; itSyst != (Cfg.GetSystematic())->end() ; ++ itSyst ) {
+                       //cout << "Syatematic : " << (itSyst->systName).c_str() << endl;
+                       bool pFound = false ;
+                       int  iSyst  = -1;
+                       int  jSyst  =  0;
+                       for ( vector<string>::iterator itSM  = (itSyst->systMember).begin() ; itSM != (itSyst->systMember).end() ; ++itSM , ++jSyst ) {
+                         if ( (*itSM) == itBG->BaseName ) { pFound = true ; iSyst = jSyst ; }
+                         //cout << (*itSM) << " =? " << itBG->BaseName << " " << pFound << endl ;
+                       }   
+                       if ( pFound ) {
+                         for (Int_t i=1; i<= hTmp->GetNbinsX() ; i++) {
+                           double syst = abs(hTmp->GetBinContent(i) * (itSyst->systVal).at(iSyst) - hTmp->GetBinContent(i))  ;
+                           double err  = sqrt ( hTmp->GetBinError(i)*hTmp->GetBinError(i) + syst*syst) ;  
+                           //cout <<  hTmp->GetBinContent(i) << " " << (itSyst->systVal).at(iSyst) << " " << syst << " " <<  hTmp->GetBinError(i) << " " << err << endl ; 
+                           hTmp->SetBinError(i,err);
+                         }
+                       }
+                     }
+                     vBkgd.push_back   ( hTmp ) ;
+                     vLBkgd  .push_back(itBG->BaseName) ;
+                     vCBkgd.push_back(itBG->Color) ; 
+                  }
                   if ( itBG->Signal) { 
                     bool iSAssoc = false ;
 /*

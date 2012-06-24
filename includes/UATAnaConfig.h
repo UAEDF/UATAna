@@ -170,6 +170,12 @@ class SyDDEstim_t {
   vector <string> SyDDEMember ;
 };
 
+class CutLines_t {
+  public:
+  string CPNickName ;
+  vector<string> CutLines ;
+};
+
 
 class UATAnaConfig {
 
@@ -195,6 +201,7 @@ class UATAnaConfig {
 
   vector<CtrlPlot_t>     CtrlPlots  ;
   vector<string>         CPExtraText;
+  vector<CutLines_t>     CutLines   ;
 
   string                 SignalName;
 
@@ -237,6 +244,8 @@ class UATAnaConfig {
   vector<ScanCut_t>*      GetScanCuts()       { return &ScanCuts     ; }
   vector<CtrlPlot_t>*     GetCtrlPlots()      { return &CtrlPlots    ; }
   vector<string>*         GetCPExtraText()    { return &CPExtraText ; }
+  vector<CutLines_t>*     GetCutLines()       { return &CutLines    ; } 
+  bool                    GetDrawBgError()    { return true ; }
   string                 GetSignalName()      { return SignalName  ; }
   string                  GetLimBinName()     { return LimBinName    ; }
   float                  GetHiggsMass()       { return HiggsMass     ; }

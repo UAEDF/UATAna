@@ -8,7 +8,8 @@
 #include <TFrame.h>
 #include <TText.h>
 #include <TLatex.h>
-
+#include <TGraph.h>
+#include <TGraphAsymmErrors.h>
 #include <TMath.h>
 
 #include "src/tdrstyle.C"
@@ -336,7 +337,8 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
                                vector<string>  vLData , vector<string>  vLSignal , vector<string>  vLBkgd ,
                                vector<int>     vCData , vector<int>     vCSignal , vector<int>     vCBkgd ,
                                string  AxisT          , vector<string> CPExtraText , string Title           ,
-                               float           fLumi  , bool SaveFig    ,  bool DrawBgError  
+                               float           fLumi  , bool SaveFig    ,  bool DrawBgError , 
+                               vector<string> CutLines  
 //                             string  XAxisT = "Var" , string  YAxisT = "entries / bin", string Title = "Title"      
                              ) {
 
@@ -584,7 +586,47 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
      TLET->SetTextFont(42);   
      TLET->Draw("same");
    }
- 
+
+
+   Double_t XRange ;
+   if      ( vBkgdStack  .size() > 0 ) XRange = vBkgdStack  .at(0)->GetBinLowEdge(vBkgdStack  .at(0)->GetNbinsX()) - vBkgdStack  .at(0)->GetBinLowEdge(1);
+   else if ( vSignalStack.size() > 0 ) XRange = vSignalStack.at(0)->GetBinLowEdge(vSignalStack.at(0)->GetNbinsX()) - vSignalStack.at(0)->GetBinLowEdge(1);
+   else if ( vDataStack  .size() > 0 ) XRange = vDataStack  .at(0)->GetBinLowEdge(vDataStack  .at(0)->GetNbinsX()) - vDataStack  .at(0)->GetBinLowEdge(1);
+   for ( int iCL = 0 ; iCL < (signed) CutLines.size() ; ++iCL ) {
+     vector<string> CLConf = UATokenize( CutLines.at(iCL) , ':' );
+
+     Double_t x[2], y[2], x2[2];
+     Int_t n = 2;
+     for (Int_t i=0;i<n;i++) {
+       x[i] = atof(CLConf.at(1).c_str()) ;
+       if ( CLConf.at(0) == ">" ) x2[i]= atof(CLConf.at(1).c_str()) - 0.05*( XRange ) ; 
+       if ( CLConf.at(0) == "<" ) x2[i]= atof(CLConf.at(1).c_str()) + 0.05*( XRange ) ; 
+     }
+     if (kLogY) {
+       y[0]=0.05;
+       y[1]=hMax*1.5;
+     } else {
+       y[0]=0.;
+       y[1]=hMax*1.05;
+     }
+      
+     TGraph* gr = new TGraph(n,x,y);
+     gr->SetLineWidth(2);
+     gr->SetLineColor(kRed);
+     gr->Draw("");
+
+     TGraph* grF = new TGraph(2*n);
+     grF->SetPoint(0,x2[0],y[0]); 
+     grF->SetPoint(1,x2[0],y[1]); 
+     grF->SetPoint(2,x [0],y[1]); 
+     grF->SetPoint(3,x [0],y[0]); 
+     grF->SetFillColor(kRed);
+     grF->SetLineColor( 0);
+     grF->SetFillStyle(3005);
+     grF->Draw("f");
+
+   }
+
    Canvas->Update();
    Canvas->GetFrame()->DrawClone();
    Canvas->RedrawAxis();
@@ -932,8 +974,14 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg , bool SaveFig ) {
                  }
               }
             }  
-          }  
-          PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->XaxisTitle , CPExtraText , Cfg.GetTAnaName() , Cfg.GetTargetLumi() , SaveFig ) ;
+          } 
+          vector<string> CutLines ; 
+          for ( vector<CutLines_t>::iterator itCL = (Cfg.GetCutLines())->begin() ; itCL != (Cfg.GetCutLines())->end() ; ++itCL ) {
+            if ( itCL->CPNickName == itCP->NickName ) {
+              for ( int iCL = 0 ; iCL < (signed) (itCL->CutLines).size() ; ++iCL ) CutLines.push_back((itCL->CutLines).at(iCL)) ;
+            }
+          } 
+          PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->XaxisTitle , CPExtraText , Cfg.GetTAnaName() , Cfg.GetTargetLumi() , SaveFig , Cfg.GetDrawBgError() , CutLines ) ;
         }
 
       } else {
@@ -996,7 +1044,14 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg , bool SaveFig ) {
               }
             }
           }
-          PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->XaxisTitle , CPExtraText ,  Cfg.GetTAnaName() , Cfg.GetTargetLumi() , SaveFig) ;
+          vector<string> CutLines ; 
+          for ( vector<CutLines_t>::iterator itCL = (Cfg.GetCutLines())->begin() ; itCL != (Cfg.GetCutLines())->end() ; ++itCL ) {
+            cout << itCL->CPNickName  << " " << itCP->NickName << endl;
+            if ( itCL->CPNickName == itCP->NickName ) {
+              for ( int iCL = 0 ; iCL < (signed) (itCL->CutLines).size() ; ++iCL ) CutLines.push_back((itCL->CutLines).at(iCL)) ;
+            }
+          } 
+          PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->XaxisTitle , CPExtraText ,  Cfg.GetTAnaName() , Cfg.GetTargetLumi() , SaveFig , Cfg.GetDrawBgError() , CutLines ) ;
         }
    
  
@@ -1053,7 +1108,13 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg , bool SaveFig ) {
             }
            }  
           }  
-          PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->XaxisTitle , CPExtraText ,  Cfg.GetTAnaName() , Cfg.GetTargetLumi() ,  SaveFig ) ;
+          vector<string> CutLines ; 
+          for ( vector<CutLines_t>::iterator itCL = (Cfg.GetCutLines())->begin() ; itCL != (Cfg.GetCutLines())->end() ; ++itCL ) {
+            if ( itCL->CPNickName == itCP->NickName ) {
+              for ( int iCL = 0 ; iCL < (signed) (itCL->CutLines).size() ; ++iCL ) CutLines.push_back((itCL->CutLines).at(iCL)) ;
+            }
+          } 
+          PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->XaxisTitle , CPExtraText ,  Cfg.GetTAnaName() , Cfg.GetTargetLumi() ,  SaveFig , Cfg.GetDrawBgError() , CutLines ) ;
         }
 
       } else {
@@ -1094,7 +1155,13 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg , bool SaveFig ) {
             }
            }
           }
-          PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->XaxisTitle , CPExtraText ,  Cfg.GetTAnaName() , Cfg.GetTargetLumi() , SaveFig ) ;
+          vector<string> CutLines ; 
+          for ( vector<CutLines_t>::iterator itCL = (Cfg.GetCutLines())->begin() ; itCL != (Cfg.GetCutLines())->end() ; ++itCL ) {
+            if ( itCL->CPNickName == itCP->NickName ) {
+              for ( int iCL = 0 ; iCL < (signed) (itCL->CutLines).size() ; ++iCL ) CutLines.push_back((itCL->CutLines).at(iCL)) ;
+            }
+          } 
+          PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->XaxisTitle , CPExtraText ,  Cfg.GetTAnaName() , Cfg.GetTargetLumi() , SaveFig , Cfg.GetDrawBgError() , CutLines ) ;
         }
       } 
 

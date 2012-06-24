@@ -194,6 +194,7 @@ class UATAnaConfig {
   vector<ScanCut_t>      ScanCuts   ;
 
   vector<CtrlPlot_t>     CtrlPlots  ;
+  vector<string>         CPExtraText;
 
   string                 SignalName;
 
@@ -235,7 +236,8 @@ class UATAnaConfig {
   vector<string>*         GetCommonSign()     { return &CommonSign   ; }
   vector<ScanCut_t>*      GetScanCuts()       { return &ScanCuts     ; }
   vector<CtrlPlot_t>*     GetCtrlPlots()      { return &CtrlPlots    ; }
-  string                 GetSignalName()       { return SignalName  ; }
+  vector<string>*         GetCPExtraText()    { return &CPExtraText ; }
+  string                 GetSignalName()      { return SignalName  ; }
   string                  GetLimBinName()     { return LimBinName    ; }
   float                  GetHiggsMass()       { return HiggsMass     ; }
   vector<Systematic_t>*   GetSystematic()     { return &Systematic   ; }

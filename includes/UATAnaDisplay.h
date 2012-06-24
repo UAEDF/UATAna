@@ -33,7 +33,7 @@ class UATAnaDisplay {
                   vector<TH1F*>&  , vector<TH1F*>&  , vector<TH1F*>&  ,
                   vector<string>  , vector<string>  , vector<string>  ,
                   vector<int>     , vector<int>     , vector<int>     ,
-                  string = "Var"  , string = "Events" , string =""    ,
+                  string = "Var"  , vector<string> = vector<string>() , string =""    ,
                   float  =0       , bool = 0 
                 ) ;
 

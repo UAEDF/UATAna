@@ -125,6 +125,7 @@ void UATAnaConfig::Reset(){
   DataGroups.clear(); 
  
   CommonCuts.clear(); 
+  CPExtraText.clear();
 
   SignalName = "signal";
 
@@ -453,6 +454,11 @@ void UATAnaConfig::ReadCfg(TString CfgName) {
       //cout << (CtrlPlot.NickName).c_str() << " " << (CtrlPlot.Expression).c_str() << endl;
     } 
 
+    if ( Elements.at(0) == "CPExtraText" ) {
+      string ExtraText ;
+      for ( int iE = 1 ; iE < (signed) Elements.size() ; ++iE )  ExtraText += Elements.at(iE) + " " ; 
+      CPExtraText.push_back(ExtraText) ;
+    }
 
     if ( Elements.at(0) == "SignalName" ) SignalName = Elements.at(1) ;
 

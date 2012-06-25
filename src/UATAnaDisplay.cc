@@ -722,29 +722,51 @@ void UATAnaDisplay::PrintYields( string  DataSet , string  CutGroup , vector<str
 
 //----------------------------------- Yields() ------------------------------------------
 
-void UATAnaDisplay::Yields ( UATAnaConfig& Cfg , bool bPlot ) {
+void YieldLooper ( UATAnaConfig& Cfg , int& iGroup , int& iData , int& iContinue ) {
+
+  iData  = 1 ;
+  int iGMax = (Cfg.GetScanCuts())->size() ;
+  if ( iGroup < 0 ) iGroup = 0 ;
+  else {
+    if ( iGroup < iGMax ) ++iGroup ;
+    if ( iGroup == iGMax )  iContinue = 0;
+  }
+}
+
+void UATAnaDisplay::Yields ( UATAnaConfig& Cfg , bool bPlot , bool bAll ) {
 
   int iContinue = 1 ;
+  int iGroup  = -1 ;
+  int iData = -1 ;
   while ( iContinue != 0 ) {
 
-    int iGroup  = -1 ;
-    int iData = -1 ;
-   
-    cout << endl ;
-    cout << "CutFlow histograms " << endl ;
-    cout << "  0 = CommonCuts" << endl;
+
     int iSC = 1 ; 
-    for ( vector<ScanCut_t>::iterator itSC = (Cfg.GetScanCuts())->begin() ; itSC != (Cfg.GetScanCuts())->end() ; ++itSC , ++iSC )  
-      cout << "  " << iSC << " = " << itSC->ScanName << endl ;
-    cout << "--> Please select Cut Group: " ;
-    cin  >> iGroup;     
-    cout << endl ; 
-    cout << "  0 = All InputData" << endl;
     int iDG = 1 ;
-    for ( vector<DataGroup_t>::iterator itDG = (Cfg.GetDataGroups())->begin() ; itDG !=  (Cfg.GetDataGroups())->end() ; ++itDG , ++iDG ) 
-      cout << "  " << iDG << " = " << itDG->GroupName << endl;
-    cout << "--> Please select DataGroup: "  ;
-    cin >> iData ; 
+   
+    if ( ! bAll ) {
+      iGroup  = -1 ;
+      iData = -1 ;
+      cout << endl ;
+      cout << "CutFlow histograms " << endl ;
+      cout << "  0 = CommonCuts" << endl;
+
+      for ( vector<ScanCut_t>::iterator itSC = (Cfg.GetScanCuts())->begin() ; itSC != (Cfg.GetScanCuts())->end() ; ++itSC , ++iSC )  
+        cout << "  " << iSC << " = " << itSC->ScanName << endl ;
+      cout << "--> Please select Cut Group: " ;
+      cin  >> iGroup;     
+      cout << endl ; 
+      cout << "  0 = All InputData" << endl;
+
+      for ( vector<DataGroup_t>::iterator itDG = (Cfg.GetDataGroups())->begin() ; itDG !=  (Cfg.GetDataGroups())->end() ; ++itDG , ++iDG ) 
+        cout << "  " << iDG << " = " << itDG->GroupName << endl;
+      cout << "--> Please select DataGroup: "  ;
+      cin >> iData ;
+    } else {
+      YieldLooper(Cfg , iGroup , iData , iContinue ) ;
+      
+    } 
+    cout << iGroup << endl;
   
   /*
     PlotStack( string DataSet , string CutGroup , string CutLevel , bool kLogY ,
@@ -872,8 +894,10 @@ void UATAnaDisplay::Yields ( UATAnaConfig& Cfg , bool bPlot ) {
     if ( bPlot) PlotStack   ( DataSet , CutGroup , CutLevel , kLogY , vData , vSignal  , vBkgd , vLData , vLSignal , vLBkgd , vCData , vCSignal , vCBkgd ) ;
     else        PrintYields ( DataSet , CutGroup , Cuts             , vData , vSignal  , vBkgd , vLData , vLSignal , vLBkgd ) ;
 
-    cout << "Next CutFlow choice ? [0/1] : " ;
-    cin >> iContinue ;     
+    if ( ! bAll ) {
+      cout << "Next CutFlow choice ? [0/1] : " ;
+      cin >> iContinue ;  
+    }   
   }
   return;  
 }
@@ -1134,7 +1158,33 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg , bool SaveFig ) {
               for ( vector<BaseGroup_t>::iterator itBG = (itDG->Members).begin() ; itBG != (itDG->Members).end() ; ++itBG , ++iH ) {
                 if ( ( *itCC ==  CutLevel ) && ( itSC->ScanName == ScanName ) && ( itDG->GroupName == GroupName ) ) {
                   if ( itBG->Data  ) { vData.push_back   ( (TH1F*) (PlotSCGroup.at(iH))->Clone() ) ; vLData  .push_back(itBG->BaseName) ; }
-                  if ( itBG->Bkgd  ) { vBkgd.push_back   ( (TH1F*) (PlotSCGroup.at(iH))->Clone() ) ; vLBkgd  .push_back(itBG->BaseName) ; vCBkgd.push_back(itBG->Color) ; }
+                  //if ( itBG->Bkgd  ) { vBkgd.push_back   ( (TH1F*) (PlotSCGroup.at(iH))->Clone() ) ; vLBkgd  .push_back(itBG->BaseName) ; vCBkgd.push_back(itBG->Color) ; }
+                  if ( itBG->Bkgd  ) { 
+                     TH1F* hTmp =  (TH1F*) (PlotSCGroup.at(iH))->Clone() ;
+                     for ( vector<Systematic_t>::iterator itSyst = (Cfg.GetSystematic())->begin() ; itSyst != (Cfg.GetSystematic())->end() ; ++ itSyst ) {
+                       //cout << "Syatematic : " << (itSyst->systName).c_str() << endl;
+                       bool pFound = false ;
+                       int  iSyst  = -1;
+                       int  jSyst  =  0;
+                       for ( vector<string>::iterator itSM  = (itSyst->systMember).begin() ; itSM != (itSyst->systMember).end() ; ++itSM , ++jSyst ) {
+                         if ( (*itSM) == itBG->BaseName ) { pFound = true ; iSyst = jSyst ; }
+                         //cout << (*itSM) << " =? " << itBG->BaseName << " " << pFound << endl ;
+                       }   
+                       if ( pFound ) {
+                         for (Int_t i=1; i<= hTmp->GetNbinsX() ; i++) {
+                           double syst = abs(hTmp->GetBinContent(i) * (itSyst->systVal).at(iSyst) - hTmp->GetBinContent(i))  ;
+                           double err  = sqrt ( hTmp->GetBinError(i)*hTmp->GetBinError(i) + syst*syst) ;  
+                           //cout <<  hTmp->GetBinContent(i) << " " << (itSyst->systVal).at(iSyst) << " " << syst << " " <<  hTmp->GetBinError(i) << " " << err << endl ; 
+                           hTmp->SetBinError(i,err);
+                         }
+                       }
+                     }
+                     vBkgd.push_back   ( hTmp ) ;
+                     vLBkgd  .push_back(itBG->BaseName) ;
+                     vCBkgd.push_back(itBG->Color) ; 
+                  }
+
+
                   if ( itBG->Signal) {
                     bool iSAssoc = false ; 
 /*

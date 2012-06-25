@@ -39,7 +39,7 @@ void UATAna(TString Cfg = "Config.cfg" , TString Steps = "R"){
     Display.Init   (Config);
 
     if ( Steps.Contains ('F') ) Display.Yields(Config,1);
-    if ( Steps.Contains ('Y') ) Display.Yields(Config,0);
+    if ( Steps.Contains ('Y') ) Display.Yields(Config,0,0);
     if ( Steps.Contains ('C') ) { 
       if ( Steps.Contains ('S') ) Display.CPlot (Config,1);
       else                        Display.CPlot (Config,0);

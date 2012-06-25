@@ -48,7 +48,7 @@ class UATAnaDisplay {
   virtual ~UATAnaDisplay(){;}
 
   void Init     ( UATAnaConfig& );
-  void Yields   ( UATAnaConfig& , bool );
+  void Yields   ( UATAnaConfig& , bool , bool = false);
   void CPlot    ( UATAnaConfig& , bool );
   void LimitCard( UATAnaConfig&  ); 
 

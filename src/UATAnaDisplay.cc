@@ -511,6 +511,15 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
    if ( vBkgdStack  .size() > 0 ) vBkgdStack  .at(0)->GetYaxis()->SetLabelSize(0.04);
    if ( vDataStack  .size() > 0 ) vDataStack  .at(0)->GetYaxis()->SetLabelSize(0.04);
    if ( vSignalStack.size() > 0 ) vSignalStack.at(0)->GetYaxis()->SetLabelSize(0.04);
+
+   if ( vBkgdStack  .size() > 0 ) vBkgdStack  .at(0)->GetXaxis()->SetLabelOffset(0.01);
+   if ( vDataStack  .size() > 0 ) vDataStack  .at(0)->GetXaxis()->SetLabelOffset(0.01);
+   if ( vSignalStack.size() > 0 ) vSignalStack.at(0)->GetXaxis()->SetLabelOffset(0.01);
+   if ( vBkgdStack  .size() > 0 ) vBkgdStack  .at(0)->GetYaxis()->SetLabelOffset(0.01);
+   if ( vDataStack  .size() > 0 ) vDataStack  .at(0)->GetYaxis()->SetLabelOffset(0.01);
+   if ( vSignalStack.size() > 0 ) vSignalStack.at(0)->GetYaxis()->SetLabelOffset(0.01);
+
+
 /*
    if ( vBkgdStack  .size() > 0 ) vBkgdStack  .at(0)->GetXaxis()->
    if ( vDataStack  .size() > 0 ) vDataStack  .at(0)->GetXaxis()->
@@ -546,22 +555,22 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
    //int nLegEntry = 2 + (signed) vBkgdStack.size() + (signed) vSignalStack.size() + (signed) vDataStack.size() ;
    //TLegend* Legend = new TLegend (.60,.90-nLegEntry*.030,.9,.90);
    int nLegEntry = 2 + ( (signed) vBkgdStack.size() + (signed) vSignalStack.size() + (signed) vDataStack.size() ) /2 ;
-   TLegend* Legend = new TLegend (.20,.88-nLegEntry*.028,.6,.88);
+   TLegend* Legend = new TLegend (.18,.88-nLegEntry*.035,.58,.88);
    Legend->SetNColumns(2);
    Legend->SetBorderSize(0);
    Legend->SetFillColor(0);
    Legend->SetFillStyle(0);
    Legend->SetTextFont(42); 
    Legend->SetTextAlign(12);
-   Legend->SetTextSize(0.04);
+   Legend->SetTextSize(0.035);
    for (int iD=0 ; iD < (signed) vDataStack.size()    ; ++iD ) Legend->AddEntry( vDataStack  .at(iD) , TString(" ")+(vLData  .at(iD)).c_str() , "lp" ); 
    for (int iD=0 ; iD < (signed) vSignalStack.size()  ; ++iD ) Legend->AddEntry( vSignalStack.at(iD) , TString(" ")+(vLSignal.at(iD)).c_str() , "l" );
    for (int iD=0 ; iD < (signed) vBkgdStack.size()    ; ++iD ) Legend->AddEntry( vBkgdStack  .at(iD) , TString(" ")+(vLBkgd  .at(iD)).c_str() , "f" );  
-   if (DrawBgError) Legend->AddEntry( hErr , TString(" #sigma ") , "f");
+   if (DrawBgError) Legend->AddEntry( hErr , TString(" stat.#oplussyst.") , "f");
    Legend->Draw("same");
 
    //TLatex* TLTitle = new TLatex(.15,.94,Title.c_str());
-   TLatex* TLTitle = new TLatex(.9 ,.86,"CMS Preliminary");
+   TLatex* TLTitle = new TLatex(.92,.86,"CMS Preliminary");
    TLTitle ->SetTextSize(.04);
    TLTitle ->SetTextAlign(32);
    TLTitle ->SetNDC(1);
@@ -571,7 +580,7 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
    char LumiText[50];
    sprintf ( LumiText , "#sqrt{s} = 8 TeV, L_{int} = %4.1f fb^{-1}", fLumi/1000. );
    //TLatex* Lumi = new TLatex(.75,.94,"L_{int} = 2.4 fb^{-1}");
-   TLatex* Lumi = new TLatex(.9 ,.81,LumiText);
+   TLatex* Lumi = new TLatex(.92,.81,LumiText);
    Lumi ->SetTextSize(.03);
    Lumi->SetTextAlign(32);
    Lumi ->SetNDC(1);
@@ -579,7 +588,7 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
    Lumi ->Draw("same");
 
    for ( int iCPET =  0 ; iCPET < (signed) CPExtraText.size() ; ++iCPET ) {
-     TLatex* TLET = new TLatex(.9 ,.76-iCPET*0.04,  (CPExtraText.at(iCPET)).c_str() );
+     TLatex* TLET = new TLatex(.92,.76-iCPET*0.04,  (CPExtraText.at(iCPET)).c_str() );
      TLET->SetTextSize(.03); 
      TLET->SetTextAlign(32);
      TLET->SetNDC(1);

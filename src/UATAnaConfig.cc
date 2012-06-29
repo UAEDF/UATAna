@@ -467,8 +467,11 @@ void UATAnaConfig::ReadCfg(TString CfgName) {
       CutLines.push_back(CL);
     }
 
-    if ( Elements.at(0) == "SignalName" ) SignalName = Elements.at(1) ;
-
+    if ( Elements.at(0) == "SignalName" ) {
+       SignalName = Elements.at(1); 
+      for ( int iE = 2 ; iE < (signed) Elements.size() ; ++iE ) SignalName += " " + Elements.at(iE) ;
+    }
+  
     // LimitBinName
     if ( Elements.at(0) == "LimBinName") {
       LimBinName = Elements.at(1) ;

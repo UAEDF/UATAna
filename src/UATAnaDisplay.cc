@@ -387,8 +387,12 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
      iStack->SetMarkerStyle(20);
      if ( vCData.size() > 0) {
        iStack->SetMarkerColor(vCData.at(iD));
+       iStack->SetLineWidth(2);
+       iStack->SetLineColor(vCData.at(iD));
      } else {
        iStack->SetMarkerColor(iD+1);
+       iStack->SetLineColor(iD+1);
+       iStack->SetLineWidth(2);
      }  
      vDataStack.push_back( (TH1F*) iStack->Clone() );
      delete iStack;

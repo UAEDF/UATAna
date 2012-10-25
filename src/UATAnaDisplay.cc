@@ -343,6 +343,9 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
                              ) {
 
 
+  
+
+
  TH1F* hErr ;
 
  // ---- Lin/Log
@@ -405,6 +408,7 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
        iStack->Add(vSignal.at(iD2Sum));
      }
      if ( vCSignal.size() > 0) {
+       cout << "Changing Color" ;
        //iStack->SetMarkerColor(vCSignal.at(iD));
        iStack->SetMarkerColor(kRed+1);
      } else {
@@ -468,14 +472,14 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
     if(precision==3||temp < 0.000001) break; // fix computer errors
   }
 
-   TString ytitle = Form("entries / %s.%df", "%", precision);
+   TString ytitle = Form("events / %s.%df", "%", precision);
    if ( (signed) vAxisT.size() <= 1 ) { 
-     if ( BinWidth == 1 ) YAxisT += "entries"; 
+     if ( BinWidth == 1 ) YAxisT += "events"; 
      else                 YAxisT += Form(ytitle.Data(), BinWidth );
    } else {
      if ( vAxisT.at(1) == "AUTO" ) {
        if   ( BinWidth == 1 ) {
-         YAxisT += "entries"; 
+         YAxisT += "events"; 
          if ( (signed) vAxisT.size()  > 2 ) YAxisT += " / "+vAxisT.at(2);  
        }
        else {
@@ -567,6 +571,12 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
    Legend->SetTextFont(42); 
    Legend->SetTextAlign(12);
    Legend->SetTextSize(0.035);
+
+   // fix the name of Z+jets
+   for (int iD=0 ; iD < (signed) vBkgdStack.size()    ; ++iD ) {
+     if (  vLBkgd  .at(iD) == "Z+jets" ) vLBkgd  .at(iD) = "Z/#gamma*";
+   }
+
    for (int iD=0 ; iD < (signed) vDataStack.size()    ; ++iD ) Legend->AddEntry( vDataStack  .at(iD) , TString(" ")+(vLData  .at(iD)).c_str() , "lp" ); 
    for (int iD=0 ; iD < (signed) vSignalStack.size()  ; ++iD ) Legend->AddEntry( vSignalStack.at(iD) , TString(" ")+(vLSignal.at(iD)).c_str() , "l" );
    for (int iD=0 ; iD < (signed) vBkgdStack.size()    ; ++iD ) Legend->AddEntry( vBkgdStack  .at(iD) , TString(" ")+(vLBkgd  .at(iD)).c_str() , "f" );  
@@ -582,8 +592,8 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
    TLTitle ->Draw("same");
 
    char LumiText[50];
-   sprintf ( LumiText , "#sqrt{s} = 8 TeV, L_{int} = %4.1f fb^{-1}", fLumi/1000. );
-   //TLatex* Lumi = new TLatex(.75,.94,"L_{int} = 2.4 fb^{-1}");
+   sprintf ( LumiText , "#sqrt{s} = 8 TeV, L = %4.1f fb^{-1}", fLumi/1000. );
+   //TLatex* Lumi = new TLatex(.75,.94,"L = 2.4 fb^{-1}");
    TLatex* Lumi = new TLatex(.92,.81,LumiText);
    Lumi ->SetTextSize(.03);
    Lumi->SetTextAlign(32);
@@ -692,9 +702,15 @@ void UATAnaDisplay::PrintYields( string  DataSet , string  CutGroup , vector<str
    for ( int jCut = 1 ; jCut <= nCuts ; ++jCut , ++itCut ) {
      printf (" %10s |", itCut->c_str() );
      Float_t BkgdSum = 0.;
+     Float_t BkgdErr = 0.;
      for ( vector<TH1F*>::iterator itH =  vData.begin() ; itH != vData.end() ; ++itH )   printf (" %10.2f |", (*itH)->GetBinContent(jCut) );  
      for ( vector<TH1F*>::iterator itH =  vBkgd.begin() ; itH != vBkgd.end() ; ++itH ) { printf (" %10.2f |", (*itH)->GetBinContent(jCut) ); BkgdSum += (*itH)->GetBinContent(jCut) ; }
+     cout << endl ; 
+     printf (" %10s |", itCut->c_str() );
+     for ( vector<TH1F*>::iterator itH =  vData.begin() ; itH != vData.end() ; ++itH )   printf (" %10.2f |", (*itH)->GetBinError  (jCut) );
+     for ( vector<TH1F*>::iterator itH =  vBkgd.begin() ; itH != vBkgd.end() ; ++itH ) { printf ("+-%10.2f|", (*itH)->GetBinError  (jCut) ); BkgdErr += ((*itH)->GetBinError(jCut))*((*itH)->GetBinError(jCut)) ;  }
      printf (" %10.2f |", BkgdSum ) ;
+     printf (" %10.2f |",sqrt( BkgdErr) ) ;
      cout << endl ; 
    }
    cout << "------------+" ;
@@ -991,6 +1007,7 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg , bool SaveFig ) {
         int iH = 0 ;
         for ( vector<CtrlPlot_t>::iterator itCP = (Cfg.GetCtrlPlots())->begin() ; itCP != (Cfg.GetCtrlPlots())->end() ; ++itCP ) {
           // clean
+          bool iSPlotAtLvl = false ;
           for ( vector<TH1F*>::iterator itH = vData  .begin() ; itH != vData  .end() ; ++itH ) delete (*itH) ; vData  .clear() ; vLData  .clear() ; 
           for ( vector<TH1F*>::iterator itH = vSignal.begin() ; itH != vSignal.end() ; ++itH ) delete (*itH) ; vSignal.clear() ; vLSignal.clear() ;
           for ( vector<TH1F*>::iterator itH = vBkgd  .begin() ; itH != vBkgd  .end() ; ++itH ) delete (*itH) ; vBkgd  .clear() ; vLBkgd  .clear() ; 
@@ -998,6 +1015,7 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg , bool SaveFig ) {
           for ( vector<string>::iterator itCC = (itCP->CCNickName).begin() ; itCC != (itCP->CCNickName).end() ; ++itCC ) {
             for ( vector<InputData_t>::iterator itD = (Cfg.GetInputData())->begin() ; itD != (Cfg.GetInputData())->end() ; ++itD , ++iH ) {
               if (  *itCC ==  CutLevel  ) {
+                 iSPlotAtLvl = true ;
                  if ( itD->Data  ) { vData.push_back   ( (TH1F*) (PlotCC.at(iH))->Clone() ) ; vLData  .push_back(itD->NickName) ; }
                  if ( itD->Bkgd  ) { vBkgd.push_back   ( (TH1F*) (PlotCC.at(iH))->Clone() ) ; vLBkgd  .push_back(itD->NickName) ; }
                  if ( itD->Signal) {
@@ -1017,8 +1035,8 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg , bool SaveFig ) {
             if ( itCL->CPNickName == itCP->NickName ) {
               for ( int iCL = 0 ; iCL < (signed) (itCL->CutLines).size() ; ++iCL ) CutLines.push_back((itCL->CutLines).at(iCL)) ;
             }
-          } 
-          PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->XaxisTitle , CPExtraText , Cfg.GetTAnaName() , Cfg.GetTargetLumi() , SaveFig , Cfg.GetDrawBgError() , CutLines ) ;
+          }   
+          if (iSPlotAtLvl) PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->XaxisTitle , CPExtraText , Cfg.GetTAnaName() , Cfg.GetTargetLumi() , SaveFig , Cfg.GetDrawBgError() , CutLines ) ;
         }
 
       } else {
@@ -1028,6 +1046,7 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg , bool SaveFig ) {
         int iH = 0 ;
         for ( vector<CtrlPlot_t>::iterator itCP = (Cfg.GetCtrlPlots())->begin() ; itCP != (Cfg.GetCtrlPlots())->end() ; ++itCP ) {
           // clean
+          bool iSPlotAtLvl = false ;
           for ( vector<TH1F*>::iterator itH = vData  .begin() ; itH != vData  .end() ; ++itH ) delete (*itH) ; vData  .clear() ; vLData  .clear() ; 
           for ( vector<TH1F*>::iterator itH = vSignal.begin() ; itH != vSignal.end() ; ++itH ) delete (*itH) ; vSignal.clear() ; vLSignal.clear() ;
           for ( vector<TH1F*>::iterator itH = vBkgd  .begin() ; itH != vBkgd  .end() ; ++itH ) delete (*itH) ; vBkgd  .clear() ; vLBkgd  .clear() ; 
@@ -1036,6 +1055,7 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg , bool SaveFig ) {
             for ( vector<DataGroup_t>::iterator itDG = (Cfg.GetDataGroups())->begin() ; itDG !=  (Cfg.GetDataGroups())->end() ; ++itDG ) {
               for ( vector<BaseGroup_t>::iterator itBG = (itDG->Members).begin() ; itBG != (itDG->Members).end() ; ++itBG , ++iH ) {
                 if ( ( *itCC ==  CutLevel ) && ( itDG->GroupName == GroupName ) ) {
+                  iSPlotAtLvl = true ;
                   if ( itBG->Data  ) { vData.push_back   ( (TH1F*) (PlotCCGroup.at(iH))->Clone() ) ; vLData  .push_back(itBG->BaseName) ;  }
                   if ( itBG->Bkgd  ) { 
                      TH1F* hTmp =  (TH1F*) (PlotCCGroup.at(iH))->Clone() ;
@@ -1088,7 +1108,7 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg , bool SaveFig ) {
               for ( int iCL = 0 ; iCL < (signed) (itCL->CutLines).size() ; ++iCL ) CutLines.push_back((itCL->CutLines).at(iCL)) ;
             }
           } 
-          PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->XaxisTitle , CPExtraText ,  Cfg.GetTAnaName() , Cfg.GetTargetLumi() , SaveFig , Cfg.GetDrawBgError() , CutLines ) ;
+          if (iSPlotAtLvl) PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->XaxisTitle , CPExtraText ,  Cfg.GetTAnaName() , Cfg.GetTargetLumi() , SaveFig , Cfg.GetDrawBgError() , CutLines ) ;
         }
    
  
@@ -1121,6 +1141,7 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg , bool SaveFig ) {
         int iH = 0 ;
         for ( vector<CtrlPlot_t>::iterator itCP = (Cfg.GetCtrlPlots())->begin() ; itCP != (Cfg.GetCtrlPlots())->end() ; ++itCP ) {
           // clean
+          bool iSPlotAtLvl = false ;
           for ( vector<TH1F*>::iterator itH = vData  .begin() ; itH != vData  .end() ; ++itH ) delete (*itH) ; vData  .clear() ; vLData  .clear() ; 
           for ( vector<TH1F*>::iterator itH = vSignal.begin() ; itH != vSignal.end() ; ++itH ) delete (*itH) ; vSignal.clear() ; vLSignal.clear() ;
           for ( vector<TH1F*>::iterator itH = vBkgd  .begin() ; itH != vBkgd  .end() ; ++itH ) delete (*itH) ; vBkgd  .clear() ; vLBkgd  .clear() ; 
@@ -1129,6 +1150,7 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg , bool SaveFig ) {
            for ( vector<ScanCut_t>::iterator itSC = (Cfg.GetScanCuts())->begin() ; itSC != (Cfg.GetScanCuts())->end() ; ++itSC , ++iSC ) { 
             for ( vector<InputData_t>::iterator itD = (Cfg.GetInputData())->begin() ; itD != (Cfg.GetInputData())->end() ; ++itD , ++iH ) {
               if ( ( *itCC ==  CutLevel ) && ( itSC->ScanName == ScanName ) ) {
+                 iSPlotAtLvl = true ;
                  if ( itD->Data  ) { vData.push_back   ( (TH1F*) (PlotSC.at(iH))->Clone() ) ; vLData  .push_back(itD->NickName) ; }
                  if ( itD->Bkgd  ) { vBkgd.push_back   ( (TH1F*) (PlotSC.at(iH))->Clone() ) ; vLBkgd  .push_back(itD->NickName) ; }
                  if ( itD->Signal) {
@@ -1151,7 +1173,7 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg , bool SaveFig ) {
               for ( int iCL = 0 ; iCL < (signed) (itCL->CutLines).size() ; ++iCL ) CutLines.push_back((itCL->CutLines).at(iCL)) ;
             }
           } 
-          PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->XaxisTitle , CPExtraText ,  Cfg.GetTAnaName() , Cfg.GetTargetLumi() ,  SaveFig , Cfg.GetDrawBgError() , CutLines ) ;
+          if (iSPlotAtLvl) PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->XaxisTitle , CPExtraText ,  Cfg.GetTAnaName() , Cfg.GetTargetLumi() ,  SaveFig , Cfg.GetDrawBgError() , CutLines ) ;
         }
 
       } else {
@@ -1161,6 +1183,7 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg , bool SaveFig ) {
         int iH = 0 ;
         for ( vector<CtrlPlot_t>::iterator itCP = (Cfg.GetCtrlPlots())->begin() ; itCP != (Cfg.GetCtrlPlots())->end() ; ++itCP ) {
           // clean
+          bool iSPlotAtLvl = false ;
           for ( vector<TH1F*>::iterator itH = vData  .begin() ; itH != vData  .end() ; ++itH ) delete (*itH) ; vData  .clear() ; vLData  .clear() ; 
           for ( vector<TH1F*>::iterator itH = vSignal.begin() ; itH != vSignal.end() ; ++itH ) delete (*itH) ; vSignal.clear() ; vLSignal.clear() ;
           for ( vector<TH1F*>::iterator itH = vBkgd  .begin() ; itH != vBkgd  .end() ; ++itH ) delete (*itH) ; vBkgd  .clear() ; vLBkgd  .clear() ; 
@@ -1170,6 +1193,7 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg , bool SaveFig ) {
             for ( vector<DataGroup_t>::iterator itDG = (Cfg.GetDataGroups())->begin() ; itDG !=  (Cfg.GetDataGroups())->end() ; ++itDG ) {
               for ( vector<BaseGroup_t>::iterator itBG = (itDG->Members).begin() ; itBG != (itDG->Members).end() ; ++itBG , ++iH ) {
                 if ( ( *itCC ==  CutLevel ) && ( itSC->ScanName == ScanName ) && ( itDG->GroupName == GroupName ) ) {
+                  iSPlotAtLvl = true ;
                   if ( itBG->Data  ) { vData.push_back   ( (TH1F*) (PlotSCGroup.at(iH))->Clone() ) ; vLData  .push_back(itBG->BaseName) ; }
                   //if ( itBG->Bkgd  ) { vBkgd.push_back   ( (TH1F*) (PlotSCGroup.at(iH))->Clone() ) ; vLBkgd  .push_back(itBG->BaseName) ; vCBkgd.push_back(itBG->Color) ; }
                   if ( itBG->Bkgd  ) { 
@@ -1224,7 +1248,7 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg , bool SaveFig ) {
               for ( int iCL = 0 ; iCL < (signed) (itCL->CutLines).size() ; ++iCL ) CutLines.push_back((itCL->CutLines).at(iCL)) ;
             }
           } 
-          PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->XaxisTitle , CPExtraText ,  Cfg.GetTAnaName() , Cfg.GetTargetLumi() , SaveFig , Cfg.GetDrawBgError() , CutLines ) ;
+          if (iSPlotAtLvl ) PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->XaxisTitle , CPExtraText ,  Cfg.GetTAnaName() , Cfg.GetTargetLumi() , SaveFig , Cfg.GetDrawBgError() , CutLines ) ;
         }
       } 
 

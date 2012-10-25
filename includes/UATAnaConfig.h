@@ -131,6 +131,15 @@ class CtrlPlot_t : public TreeFormula_t {
   string         XaxisTitle ;
 };
 
+class PrintEvt_t : public TreeFormula_t {
+  public:
+  PrintEvt_t(){;}
+  virtual ~PrintEvt_t(){;}
+  int Type                       ;
+  vector<TreeFormula_t> VarList  ; 
+  vector<string> CCNickName      ;
+  vector<string> SCNickName      ;
+};  
 
 class ExtEffTH2_t   {
   public: 
@@ -200,6 +209,7 @@ class UATAnaConfig {
   vector<ScanCut_t>      ScanCuts   ;
 
   vector<CtrlPlot_t>     CtrlPlots  ;
+  vector<PrintEvt_t>     PrintEvts  ;
   vector<string>         CPExtraText;
   vector<CutLines_t>     CutLines   ;
 
@@ -243,6 +253,7 @@ class UATAnaConfig {
   vector<string>*         GetCommonSign()     { return &CommonSign   ; }
   vector<ScanCut_t>*      GetScanCuts()       { return &ScanCuts     ; }
   vector<CtrlPlot_t>*     GetCtrlPlots()      { return &CtrlPlots    ; }
+  vector<PrintEvt_t>*     GetPrintEvt()       { return &PrintEvts   ; } 
   vector<string>*         GetCPExtraText()    { return &CPExtraText ; }
   vector<CutLines_t>*     GetCutLines()       { return &CutLines    ; } 
   bool                    GetDrawBgError()    { return true ; }

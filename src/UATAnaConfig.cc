@@ -454,6 +454,30 @@ void UATAnaConfig::ReadCfg(TString CfgName) {
       //cout << (CtrlPlot.NickName).c_str() << " " << (CtrlPlot.Expression).c_str() << endl;
     } 
 
+    // PrintEvt
+    if ( Elements.at(0) == "PrintEvt" ) {
+      PrintEvt_t  PrintEvt;
+      PrintEvt.NickName   = Elements.at(1);
+      PrintEvt.Type       = atoi(Elements.at(2).c_str()) ;
+      if ( PrintEvt.Type == 0 ) {
+         PrintEvt.Expression = Elements.at(6);
+      } else {
+         PrintEvt.Expression = "1" ; 
+      } 
+      SetCutLevels(Elements.at(3),PrintEvt.CCNickName);
+      for ( vector<string>::iterator itPEC = (PrintEvt.CCNickName).begin() ; itPEC != (PrintEvt.CCNickName).end() ; ++itPEC ) cout << *itPEC << endl ;
+      SetCutLevels(Elements.at(4),PrintEvt.SCNickName);
+      vector<string> VarName = UATokenize( Elements.at(5) , ':' );
+      for ( vector<string>::iterator itN = VarName.begin() ; itN != VarName.end() ; ++itN ) {
+        cout << *itN << endl ;
+        TreeFormula_t Var;
+        Var.NickName   = *itN ;
+        Var.Expression = *itN ; 
+        (PrintEvt.VarList).push_back(Var);
+      }
+      PrintEvts.push_back( PrintEvt );
+    }
+
     if ( Elements.at(0) == "CPExtraText" ) {
       string ExtraText ;
       for ( int iE = 1 ; iE < (signed) Elements.size() ; ++iE )  ExtraText += Elements.at(iE) + " " ; 

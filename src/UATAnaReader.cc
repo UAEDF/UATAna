@@ -1,5 +1,6 @@
 
 #include "../includes/UATAnaReader.h"
+#include <iomanip>
 
 //----------------------------------- Init() ------------------------------------------
 
@@ -83,6 +84,10 @@ void UATAnaReader::Init ( UATAnaConfig& Cfg , bool& bWTree ) {
 
 void UATAnaReader::Analyze( UATAnaConfig& Cfg , bool& bWTree ) {
 
+ // Some PrintEvt output
+ // for ( vector<PrintEvt_t>::iterator itPE = (Cfg.GetPrintEvt())->begin() ; itPE !=  (Cfg.GetPrintEvt())->end() ; ++itPE) {
+
+
  // Loop on all tree -------------------------------------------------------
 
  int iD=0 ;
@@ -147,6 +152,19 @@ void UATAnaReader::Analyze( UATAnaConfig& Cfg , bool& bWTree ) {
    }
    // Create CtrlPlots Formula
    for ( vector<CtrlPlot_t>::iterator itCP = (Cfg.GetCtrlPlots())->begin() ; itCP != (Cfg.GetCtrlPlots())->end() ; ++itCP) itCP->MakFormula(Tree);
+   // Create PrintEvt Formula
+   /*TreeFormula_t RunForm;
+   RunForm.NickName   = "Run" ;
+   RunForm.Expression = "run" ;
+   RunForm.MakFormula(Tree);
+   TreeFormula_t EvtForm;
+   EvtForm.NickName   = "Evt" ;
+   EvtForm.Expression = "event" ;
+   EvtForm.MakFormula(Tree);*/
+   for ( vector<PrintEvt_t>::iterator itPE = (Cfg.GetPrintEvt())->begin() ; itPE !=  (Cfg.GetPrintEvt())->end() ; ++itPE) {
+     if ( itPE->Type == 0 ) itPE->MakFormula(Tree);
+     for  ( vector<TreeFormula_t>::iterator itVL = (itPE->VarList).begin() ; itVL != (itPE->VarList).end() ; ++itVL ) itVL->MakFormula(Tree);
+   }  
 
 
    // ------------- ExtEffTH2 ------------------
@@ -171,6 +189,13 @@ void UATAnaReader::Analyze( UATAnaConfig& Cfg , bool& bWTree ) {
      }
      // Evaluate CtrlPlots Formula
      for ( vector<CtrlPlot_t>::iterator itCP = (Cfg.GetCtrlPlots())->begin() ; itCP != (Cfg.GetCtrlPlots())->end() ; ++itCP) itCP->EvaFormula();
+     // Evaluate PrintEvt Formula
+     //RunForm.EvaFormula();
+     //EvtForm.EvaFormula();
+     for ( vector<PrintEvt_t>::iterator itPE = (Cfg.GetPrintEvt())->begin() ; itPE !=  (Cfg.GetPrintEvt())->end() ; ++itPE) {
+       if ( itPE->Type == 0 ) itPE->EvaFormula();
+       for  ( vector<TreeFormula_t>::iterator itVL = (itPE->VarList).begin() ; itVL != (itPE->VarList).end() ; ++itVL ) itVL->EvaFormula();
+     } 
      // Evaluate ExtEffTH2 
      for ( vector<ExtEffTH2_t>::iterator itEff = (Cfg.GetExtEffTH2())->begin() ; itEff != (Cfg.GetExtEffTH2())->end() ; ++itEff ) itEff->EvaExtEffTH2();  
 
@@ -185,6 +210,7 @@ void UATAnaReader::Analyze( UATAnaConfig& Cfg , bool& bWTree ) {
      Double_t Weight = DataSetWeight * (Cfg.GetTreeWeight())->Result() ;
      if ( ! itD->Data )  Weight *= Cfg.GetTargetLumi() / itD->Lumi ;
      for ( vector<ExtEffTH2_t>::iterator itEff = (Cfg.GetExtEffTH2())->begin() ; itEff != (Cfg.GetExtEffTH2())->end() ; ++itEff )  Weight *= itEff->Result(itD->NickName) ;
+     if ( Weight == 0 ) continue; 
 
      // CommonCuts
      bool passCC = true ;
@@ -193,6 +219,18 @@ void UATAnaReader::Analyze( UATAnaConfig& Cfg , bool& bWTree ) {
        if ( !passCC ) continue; 
        if ( itCC->Result() ) {
          FillCutFlow(Cfg,itD->NickName,iCC,Weight);
+         // PrintEvt
+         for ( vector<PrintEvt_t>::iterator itPE = (Cfg.GetPrintEvt())->begin() ; itPE !=  (Cfg.GetPrintEvt())->end() ; ++itPE) {
+           if ( itPE->Type == 1 ) {
+             for ( vector<string>::iterator itPEC = (itPE->CCNickName).begin() ; itPEC !=  (itPE->CCNickName).end() ; ++itPEC ) {
+               if ( *itPEC == itCC->NickName ) { 
+                 cout << itPE->NickName << ": sample=" << itD->NickName << " " ;
+                 for (vector<TreeFormula_t>::iterator itVL = (itPE->VarList).begin() ; itVL != (itPE->VarList).end() ; ++itVL ) cout << setiosflags(ios::fixed) << setprecision(6) << itVL->NickName << "=" << itVL->Result() << " " ;
+                 cout << endl;
+               }
+             }  
+           } 
+         }
        } else {
          passCC = false ; 
        } 
@@ -207,6 +245,18 @@ void UATAnaReader::Analyze( UATAnaConfig& Cfg , bool& bWTree ) {
            if ( !passSC ) continue; 
            if ( itSC->Result() ) {
              FillScanFlow(Cfg,itSCG->ScanName,itD->NickName,iSC,Weight);
+             // PrintEvt
+             for ( vector<PrintEvt_t>::iterator itPE = (Cfg.GetPrintEvt())->begin() ; itPE !=  (Cfg.GetPrintEvt())->end() ; ++itPE) {
+               if ( itPE->Type == 2 ) {
+                 for ( vector<string>::iterator itPEC = (itPE->CCNickName).begin() ; itPEC !=  (itPE->CCNickName).end() ; ++itPEC ) {
+                   if ( *itPEC == itSC->NickName ) { 
+                     cout << itPE->NickName << ": sample=" << itD->NickName << " " ;
+                     for (vector<TreeFormula_t>::iterator itVL = (itPE->VarList).begin() ; itVL != (itPE->VarList).end() ; ++itVL ) cout << setiosflags(ios::fixed) << setprecision(6) << itVL->NickName << "=" << itVL->Result() << " " ;
+                     cout << endl;
+                   }
+                 }  
+               } 
+             }
            } else {
              passSC = false ; 
            } 
@@ -214,9 +264,22 @@ void UATAnaReader::Analyze( UATAnaConfig& Cfg , bool& bWTree ) {
        }
      } 
 
+
+
      // Control Plots
      FillPlotCC( Cfg , itD->NickName , Weight );
      if (passCC) FillPlotSC( Cfg , itD->NickName , Weight );
+
+     // PrintEvt
+     for ( vector<PrintEvt_t>::iterator itPE = (Cfg.GetPrintEvt())->begin() ; itPE !=  (Cfg.GetPrintEvt())->end() ; ++itPE) {
+       if ( itPE->Type == 0 ) {
+         if ( itPE->Result() ) {
+           cout << itPE->NickName << ": sample=" << itD->NickName << " " ;
+           for (vector<TreeFormula_t>::iterator itVL = (itPE->VarList).begin() ; itVL != (itPE->VarList).end() ; ++itVL ) cout << setiosflags(ios::fixed) << setprecision(6) << itVL->NickName << "=" << itVL->Result() << " " ;
+           cout << endl;
+         } 
+       }
+     }
 
      // Output TTree
      if ( bWTree && Weight != 0 ) {
@@ -282,6 +345,13 @@ void UATAnaReader::Analyze( UATAnaConfig& Cfg , bool& bWTree ) {
    }
    // Delete CtrlPlots Formula
    for ( vector<CtrlPlot_t>::iterator itCP = (Cfg.GetCtrlPlots())->begin() ; itCP != (Cfg.GetCtrlPlots())->end() ; ++itCP) itCP->DelFormula();
+   // Delete PrintEvtFormula
+   //RunForm.DelFormula();
+   //EvtForm.DelFormula();
+   for ( vector<PrintEvt_t>::iterator itPE = (Cfg.GetPrintEvt())->begin() ; itPE !=  (Cfg.GetPrintEvt())->end() ; ++itPE) {
+     if ( itPE->Type == 0 ) itPE->DelFormula();
+     for  ( vector<TreeFormula_t>::iterator itVL = (itPE->VarList).begin() ; itVL != (itPE->VarList).end() ; ++itVL ) itVL->DelFormula();
+   } 
   
    // ------------- ExtEffTH2 ------------------
    for ( vector<ExtEffTH2_t>::iterator itEff = (Cfg.GetExtEffTH2())->begin() ; itEff != (Cfg.GetExtEffTH2())->end() ; ++itEff ) itEff->MakExtEffTH2(Tree);  

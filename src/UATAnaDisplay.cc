@@ -372,7 +372,7 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
                              ) {
 
 
- bool DrawRatio = false ;   
+ bool DrawRatio = true ;   
 
 
  TH1F* hErr ;
@@ -433,6 +433,7 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
 
 
   // ---- pad1: Stack Plot ----
+
 
   pad1->cd();
   if (kLogY) pad1->SetLogy(1);
@@ -584,15 +585,6 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
    if ( vSignalStack.size() > 0 ) vSignalStack.at(0)->GetYaxis()->SetLabelOffset(0.01);
 
 
-/*
-   if ( vBkgdStack  .size() > 0 ) vBkgdStack  .at(0)->GetXaxis()->
-   if ( vDataStack  .size() > 0 ) vDataStack  .at(0)->GetXaxis()->
-   if ( vSignalStack.size() > 0 ) vSignalStack.at(0)->GetXaxis()->
-   if ( vBkgdStack  .size() > 0 ) vBkgdStack  .at(0)->GetYaxis()->SetNdivisions(206);
-   if ( vDataStack  .size() > 0 ) vDataStack  .at(0)->GetYaxis()->SetNdivisions(206);
-   if ( vSignalStack.size() > 0 ) vSignalStack.at(0)->GetYaxis()->SetNdivisions(206);
-*/
-
    if        ( vBkgdStack  .size() > 0 ) {
      vBkgdStack.at(0)->DrawCopy("hist");
      for (int iD=1 ; iD < (signed) vBkgdStack.size()    ; ++iD ) vBkgdStack.at(iD)   ->DrawCopy("histsame");  
@@ -706,6 +698,7 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
 
    }
 
+
    // ---- pad2: Ratio ----
 
    if ( DrawRatio && vDataStack.size() > 0 && vBkgdStack  .size() > 0 ) {
@@ -733,10 +726,9 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
       uncertainty->SetBinError  (ibin, uncertaintyError);
      }
 
-
+     uncertainty->GetYaxis()->SetRangeUser(0, 2.5); 
      uncertainty->Draw("e2");
      ratio      ->Draw("ep,same");
-     uncertainty->GetYaxis()->SetRangeUser(0, 2.5); 
      Pad2TAxis(uncertainty, (vDataStack.at(0))->GetXaxis()->GetTitle(), "data / prediction"); 
 
      //ratio-> DrawCopy(); 
@@ -765,7 +757,7 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
      TString Dir = "plots/" + Title + "/" ;
      if (!gSystem->OpenDirectory(Dir)) gSystem->MakeDirectory(Dir);
       
-     Canvas->SaveAs(Dir+CanName+".gif"); 
+     //Canvas->SaveAs(Dir+CanName+".gif"); 
      Canvas->SaveAs(Dir+CanName+".png"); 
      Canvas->SaveAs(Dir+CanName+".pdf"); 
    }

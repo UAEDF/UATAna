@@ -409,20 +409,25 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
   if ( DrawRatio ) {
 
     Canvas = new TCanvas( CanName , CanName , 600 , 1.2*600 );
-    pad1 = new TPad("pad1", "pad1", 0, 0.3, 1, 1);
-    pad1->SetTopMargin   (0.05);
-    pad1->SetBottomMargin(0.02);
-    pad1->SetRightMargin(0.05);
-    pad1->SetLeftMargin(0.15);
+    //Addint the top bottom margins causes problems. pad2 has also a different ymax value then the ymin of pad1. this is necessary. If you remove the -0.03 in pad2, the letter "N" from prediction will disappear.
+    pad1 = new TPad("pad1", "pad1", 0, 0.20, 1, 1);
+    //pad1->SetTopMargin   (0.05);
+    //pad1->SetBottomMargin(0.02);
+    //pad1->SetRightMargin(0.05);
+    //pad1->SetLeftMargin(0.15);
     pad1->Draw();
     
-
-    pad2 = new TPad("pad2", "pad2", 0, 0, 1, 0.3); 
-    pad2->SetTopMargin   (0.08);
+    pad2 = new TPad("pad2", "pad2", 0, 0, 1, 0.25); 
+    pad2->SetTopMargin   (-0.03);
     pad2->SetBottomMargin(0.35);
-    pad1->SetRightMargin(0.05);
-    pad1->SetLeftMargin(0.15);
+    //pad1->SetRightMargin(0.05);
+    //pad1->SetLeftMargin(0.15);
     pad2->Draw();
+
+    //pad2->SetTopMargin   (0.035);
+    //pad2->SetBottomMargin(0.35);
+    //pad1->SetRightMargin(0.05);
+    //pad1->SetLeftMargin(0.15);
 
   } else {
     Canvas = new TCanvas( CanName , CanName , 600 , 600 );
@@ -737,21 +742,23 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
 
 
    } 
-
+  //gPad->WaitPrimitive();
    // ---- Redraw ------
 
-   pad1->Update();
-   pad1->GetFrame()->DrawClone();
-   pad1->RedrawAxis();
+   //pad1->Update();
+   //pad1->GetFrame()->DrawClone();
+   //pad1->RedrawAxis();
    //pad1->Modified();
    //pad1->Update();
 
+   //gPad->WaitPrimitive();
    if ( DrawRatio ) {
-     pad2->Update();
-     pad2->GetFrame()->DrawClone();
-     pad2->RedrawAxis();
+     //pad2->Update();
+     //pad2->GetFrame()->DrawClone();
+     //pad2->RedrawAxis();
+     cout << " I am against redrawing " << endl;
    } 
-
+   //gPad->WaitPrimitive();
 
    if ( SaveFig ) {
      TString Dir = "plots/" + Title + "/" ;
@@ -761,7 +768,10 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
      Canvas->SaveAs(Dir+CanName+".png"); 
      Canvas->SaveAs(Dir+CanName+".pdf"); 
    }
- 
+   if ( DrawRatio ) {
+      pad2->Close();
+   }
+
  }
  return ;
 }

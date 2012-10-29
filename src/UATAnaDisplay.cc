@@ -124,7 +124,7 @@ void Pad2TAxis(TH1* hist, TString xtitle, TString ytitle)
   yaxis->SetNdivisions (   505);
   yaxis->SetTitle      (ytitle);
   yaxis->SetTitleFont  (    42);
-  yaxis->SetTitleOffset(  0.75);
+  yaxis->SetTitleOffset(  .6);
   yaxis->SetTitleSize  (  0.11);
 }
 
@@ -410,6 +410,9 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
 
     Canvas = new TCanvas( CanName , CanName , 600 , 1.2*600 );
     //Addint the top bottom margins causes problems. pad2 has also a different ymax value then the ymin of pad1. this is necessary. If you remove the -0.03 in pad2, the letter "N" from prediction will disappear.
+
+/*
+// WORKING
     pad1 = new TPad("pad1", "pad1", 0, 0.20, 1, 1);
     //pad1->SetTopMargin   (0.05);
     //pad1->SetBottomMargin(0.02);
@@ -423,11 +426,22 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
     //pad1->SetRightMargin(0.05);
     //pad1->SetLeftMargin(0.15);
     pad2->Draw();
+*/
+    pad1 = new TPad("pad1", "pad1", 0, 0.25, 1, 1);
+    pad1->SetTopMargin   (0.05);
+    pad1->SetBottomMargin(0.08);
+    pad1->SetRightMargin(0.05);
+    pad1->SetLeftMargin(0.15);
+    pad1->Draw();
+    
 
-    //pad2->SetTopMargin   (0.035);
-    //pad2->SetBottomMargin(0.35);
-    //pad1->SetRightMargin(0.05);
-    //pad1->SetLeftMargin(0.15);
+    pad2 = new TPad("pad2", "pad2", 0, 0, 1, 0.3); 
+    pad2->SetTopMargin   (-0.08);
+    pad2->SetBottomMargin(0.35);
+    pad2->SetRightMargin(0.05);
+    pad2->SetLeftMargin(0.15);
+    pad2->Draw();
+
 
   } else {
     Canvas = new TCanvas( CanName , CanName , 600 , 600 );
@@ -734,7 +748,7 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
      uncertainty->GetYaxis()->SetRangeUser(0, 2.5); 
      uncertainty->Draw("e2");
      ratio      ->Draw("ep,same");
-     Pad2TAxis(uncertainty, (vDataStack.at(0))->GetXaxis()->GetTitle(), "data / prediction"); 
+     Pad2TAxis(uncertainty, (vDataStack.at(0))->GetXaxis()->GetTitle(), "data / MC"); 
 
      //ratio-> DrawCopy(); 
      //uncertainty->DrawCopy("histsame");

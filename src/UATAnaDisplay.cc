@@ -101,6 +101,35 @@ TH1F * DrawOverflow(TH1F *h)
 }
 
 //------------------------------------------------------------------------------
+// Pad2TAxis
+//------------------------------------------------------------------------------
+void Pad2TAxis(TH1* hist, TString xtitle, TString ytitle)
+{
+  TAxis* xaxis = (TAxis*)hist->GetXaxis();
+  TAxis* yaxis = (TAxis*)hist->GetYaxis();
+
+  xaxis->SetLabelFont  (    42);
+  xaxis->SetLabelOffset( 0.025);
+  xaxis->SetLabelSize  (   0.1);
+  xaxis->SetNdivisions (   505);
+  xaxis->SetTitle      (xtitle);
+  xaxis->SetTitleFont  (    42);
+  xaxis->SetTitleOffset(  1.35);
+  xaxis->SetTitleSize  (  0.11);
+  
+  yaxis->CenterTitle   (      );
+  yaxis->SetLabelFont  (    42);
+  yaxis->SetLabelOffset(  0.02);
+  yaxis->SetLabelSize  (   0.1);
+  yaxis->SetNdivisions (   505);
+  yaxis->SetTitle      (ytitle);
+  yaxis->SetTitleFont  (    42);
+  yaxis->SetTitleOffset(  0.75);
+  yaxis->SetTitleSize  (  0.11);
+}
+
+
+//------------------------------------------------------------------------------
 // GetMaximumIncludingErrors
 //------------------------------------------------------------------------------
 Double_t GetMaximumIncludingErrors(TH1F* h)
@@ -343,7 +372,7 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
                              ) {
 
 
-  
+ bool DrawRatio = false ;   
 
 
  TH1F* hErr ;
@@ -373,14 +402,41 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
   if ( CutLevel != "NONE" ) CanName += "_"+CutLevel ;
   if ( ! kLogY ) CanName += "_Lin" ; 
   else           CanName += "_Log" ;   
-  TCanvas* Canvas  = new TCanvas( CanName , CanName , 600 , 600 );
 
-  gPad->SetRightMargin(0.05);
-  gPad->SetLeftMargin(0.15);
-  if (kLogY) gPad->SetLogy(1);
+  TCanvas* Canvas ;
+  TPad* pad1;
+  TPad* pad2;
+  if ( DrawRatio ) {
+
+    Canvas = new TCanvas( CanName , CanName , 600 , 1.2*600 );
+    pad1 = new TPad("pad1", "pad1", 0, 0.3, 1, 1);
+    pad1->SetTopMargin   (0.05);
+    pad1->SetBottomMargin(0.02);
+    pad1->SetRightMargin(0.05);
+    pad1->SetLeftMargin(0.15);
+    pad1->Draw();
+    
+
+    pad2 = new TPad("pad2", "pad2", 0, 0, 1, 0.3); 
+    pad2->SetTopMargin   (0.08);
+    pad2->SetBottomMargin(0.35);
+    pad1->SetRightMargin(0.05);
+    pad1->SetLeftMargin(0.15);
+    pad2->Draw();
+
+  } else {
+    Canvas = new TCanvas( CanName , CanName , 600 , 600 );
+    pad1 = (TPad*)Canvas->GetPad(0);
+    pad1->SetRightMargin(0.05);
+    pad1->SetLeftMargin(0.15);
+  }
+
+
+  // ---- pad1: Stack Plot ----
+
+  pad1->cd();
+  if (kLogY) pad1->SetLogy(1);
   
-
-
    vector<TH1F*> vDataStack;
    for (int iD=0 ; iD < (signed) vData.size() ; ++iD ) {
      TH1F* iStack = (TH1F*) vData.at(iD)->Clone();
@@ -650,11 +706,60 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
 
    }
 
-   Canvas->Update();
-   Canvas->GetFrame()->DrawClone();
-   Canvas->RedrawAxis();
-   Canvas->Modified();
-   Canvas->Update();
+   // ---- pad2: Ratio ----
+
+   if ( DrawRatio && vDataStack.size() > 0 && vBkgdStack  .size() > 0 ) {
+
+     pad2->cd();
+     TH1F* ratio       = (TH1F*) (vDataStack.at(0))->Clone("ratio");
+     TH1F* allmc       = (TH1F*) (vBkgdStack.at(0))->Clone("allmc");
+     TH1F* uncertainty = (TH1F*) hErr ->Clone("uncertainty");
+
+     for (UInt_t ibin=1; ibin<=ratio->GetNbinsX(); ibin++) {
+      Double_t mcValue = allmc->GetBinContent(ibin);
+      Double_t mcError = allmc->GetBinError  (ibin);
+
+      Double_t dtValue = ratio->GetBinContent(ibin);
+      Double_t dtError = ratio->GetBinError  (ibin);
+
+      Double_t ratioValue       = (mcValue > 0) ? dtValue/mcValue : 0.0;
+      Double_t ratioError       = (mcValue > 0) ? dtError/mcValue : 0.0;
+      Double_t uncertaintyError = (mcValue > 0) ? mcError/mcValue : 0.0;
+
+      ratio->SetBinContent(ibin, ratioValue);
+      ratio->SetBinError  (ibin, ratioError);
+
+      uncertainty->SetBinContent(ibin, 1.0);
+      uncertainty->SetBinError  (ibin, uncertaintyError);
+     }
+
+
+     uncertainty->Draw("e2");
+     ratio      ->Draw("ep,same");
+     uncertainty->GetYaxis()->SetRangeUser(0, 2.5); 
+     Pad2TAxis(uncertainty, (vDataStack.at(0))->GetXaxis()->GetTitle(), "data / prediction"); 
+
+     //ratio-> DrawCopy(); 
+     //uncertainty->DrawCopy("histsame");
+     //ratio-> DrawCopy("same");
+
+
+   } 
+
+   // ---- Redraw ------
+
+   pad1->Update();
+   pad1->GetFrame()->DrawClone();
+   pad1->RedrawAxis();
+   //pad1->Modified();
+   //pad1->Update();
+
+   if ( DrawRatio ) {
+     pad2->Update();
+     pad2->GetFrame()->DrawClone();
+     pad2->RedrawAxis();
+   } 
+
 
    if ( SaveFig ) {
      TString Dir = "plots/" + Title + "/" ;

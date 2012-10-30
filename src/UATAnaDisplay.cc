@@ -373,6 +373,7 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
 
 
  bool DrawRatio = true ;   
+ //bool DrawRatio = false ;   
 
 
  TH1F* hErr ;
@@ -758,13 +759,13 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
    } 
   //gPad->WaitPrimitive();
    // ---- Redraw ------
-
-   //pad1->Update();
-   //pad1->GetFrame()->DrawClone();
-   //pad1->RedrawAxis();
-   //pad1->Modified();
-   //pad1->Update();
-
+   if ( ! DrawRatio ) {
+   pad1->Update();
+   pad1->GetFrame()->DrawClone();
+   pad1->RedrawAxis();
+   pad1->Modified();
+   pad1->Update();
+   }
    //gPad->WaitPrimitive();
    if ( DrawRatio ) {
      //pad2->Update();

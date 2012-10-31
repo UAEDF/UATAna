@@ -141,6 +141,25 @@ class PrintEvt_t : public TreeFormula_t {
   vector<string> SCNickName      ;
 };  
 
+
+class ExtEff_t {
+  public: 
+  ExtEff_t(){;}
+  virtual ~ExtEff_t(){;}
+  string        NickName ;
+  Int_t         Method   ;  // 1: correct data / 2: Scale MC / 3: Reject MC    
+  TH1F*         hEff     ;
+  TreeFormula_t X        ; 
+  vector<string> DataSets;
+  void MakExtEff (TTree *);
+  void EvaExtEff ()   ;
+  void DelExtEff ()   ;
+  Float_t Result(string&) ;
+  private:
+  bool          bEvaluated ;
+  Float_t       Result_    ; 
+};
+
 class ExtEffTH2_t   {
   public: 
   ExtEffTH2_t(){;}
@@ -200,6 +219,7 @@ class UATAnaConfig {
 
   vector<DataSetWght_t>  DataSetWghts ;
   TreeFormula_t          TreeWeight ; 
+  vector<ExtEff_t>       ExtEff     ;
   vector<ExtEffTH2_t>    ExtEffTH2  ;
   Float_t                TargetLumi ;
 
@@ -247,6 +267,7 @@ class UATAnaConfig {
   vector<OutTTree_t>*     GetOutTTree()       { return &OutTTree     ; } 
   vector<DataSetWght_t>*  GetDataSetWghts()   { return &DataSetWghts ; }
   TreeFormula_t*          GetTreeWeight()     { return &TreeWeight   ; }
+  vector<ExtEff_t>*       GetExtEff()         { return &ExtEff       ; }
   vector<ExtEffTH2_t>*    GetExtEffTH2()      { return &ExtEffTH2    ; }
   Float_t                 GetTargetLumi()     { return TargetLumi    ; }           
   vector<CommonCut_t>*    GetCommonCuts()     { return &CommonCuts   ; }

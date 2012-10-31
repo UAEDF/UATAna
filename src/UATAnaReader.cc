@@ -167,7 +167,10 @@ void UATAnaReader::Analyze( UATAnaConfig& Cfg , bool& bWTree ) {
    }  
 
 
-   // ------------- ExtEffTH2 ------------------
+
+   // ------------- ExtEff ------------------
+   
+   for ( vector<ExtEff_t>::iterator itEff = (Cfg.GetExtEff())->begin() ; itEff != (Cfg.GetExtEff())->end() ; ++itEff ) itEff->MakExtEff(Tree);  
    for ( vector<ExtEffTH2_t>::iterator itEff = (Cfg.GetExtEffTH2())->begin() ; itEff != (Cfg.GetExtEffTH2())->end() ; ++itEff ) itEff->MakExtEffTH2(Tree);  
 
    // ------------- Loop -----------------------
@@ -196,7 +199,8 @@ void UATAnaReader::Analyze( UATAnaConfig& Cfg , bool& bWTree ) {
        if ( itPE->Type == 0 ) itPE->EvaFormula();
        for  ( vector<TreeFormula_t>::iterator itVL = (itPE->VarList).begin() ; itVL != (itPE->VarList).end() ; ++itVL ) itVL->EvaFormula();
      } 
-     // Evaluate ExtEffTH2 
+     // Evaluate ExtEff 
+     for ( vector<ExtEff_t>::iterator itEff = (Cfg.GetExtEff())->begin() ; itEff != (Cfg.GetExtEff())->end() ; ++itEff ) itEff->EvaExtEff();  
      for ( vector<ExtEffTH2_t>::iterator itEff = (Cfg.GetExtEffTH2())->begin() ; itEff != (Cfg.GetExtEffTH2())->end() ; ++itEff ) itEff->EvaExtEffTH2();  
 
      // ------------- DataSetWeight --------------
@@ -209,6 +213,7 @@ void UATAnaReader::Analyze( UATAnaConfig& Cfg , bool& bWTree ) {
      // Compute Event Weight 
      Double_t Weight = DataSetWeight * (Cfg.GetTreeWeight())->Result() ;
      if ( ! itD->Data )  Weight *= Cfg.GetTargetLumi() / itD->Lumi ;
+     for ( vector<ExtEff_t>::iterator itEff = (Cfg.GetExtEff())->begin() ; itEff != (Cfg.GetExtEff())->end() ; ++itEff )  Weight *= itEff->Result(itD->NickName) ;
      for ( vector<ExtEffTH2_t>::iterator itEff = (Cfg.GetExtEffTH2())->begin() ; itEff != (Cfg.GetExtEffTH2())->end() ; ++itEff )  Weight *= itEff->Result(itD->NickName) ;
      if ( Weight == 0 ) continue; 
 
@@ -353,7 +358,8 @@ void UATAnaReader::Analyze( UATAnaConfig& Cfg , bool& bWTree ) {
      for  ( vector<TreeFormula_t>::iterator itVL = (itPE->VarList).begin() ; itVL != (itPE->VarList).end() ; ++itVL ) itVL->DelFormula();
    } 
   
-   // ------------- ExtEffTH2 ------------------
+   // ------------- ExtEff ------------------
+   for ( vector<ExtEff_t>::iterator itEff = (Cfg.GetExtEff())->begin() ; itEff != (Cfg.GetExtEff())->end() ; ++itEff ) itEff->MakExtEff(Tree);  
    for ( vector<ExtEffTH2_t>::iterator itEff = (Cfg.GetExtEffTH2())->begin() ; itEff != (Cfg.GetExtEffTH2())->end() ; ++itEff ) itEff->MakExtEffTH2(Tree);  
 
    // Close Tree

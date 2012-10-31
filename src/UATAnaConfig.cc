@@ -52,6 +52,52 @@ Float_t TreeFormula_t::Result(){
   }
 } 
 
+
+// ---------------------- ExtEff_t -------------------------------
+
+void ExtEff_t::MakExtEff (TTree* Tree){
+  X.MakFormula(Tree); 
+  return ;
+}
+
+void ExtEff_t::EvaExtEff (){
+  X.EvaFormula(); 
+  Float_t xVal = X.Result();
+  Int_t   xBin = -1 ;
+  for ( int i = 1 ; i<= hEff->GetNbinsX() ; ++i ) {
+    if ( xVal >= (hEff->GetXaxis())->GetBinLowEdge(i) &&  xVal < (hEff->GetXaxis())->GetBinUpEdge(i) ) xBin = i ;   
+  }
+  if (xBin > 0 ) { Result_ = hEff->GetBinContent(xBin) ; }
+  else           { Result_ = 1.0 ; }
+  bEvaluated = true;
+  return ;
+}
+
+
+void ExtEff_t::DelExtEff (){
+  bEvaluated = false ;
+  X.DelFormula(); 
+  return ;
+}
+
+
+Float_t ExtEff_t::Result( string& DataSet )  {
+  if ( ! bEvaluated ) {  cout << "[ExtEff_t::Result] Formula not evaluated: " << NickName << endl ; return 1. ; }
+  bool FoundDS = false ;
+  for ( vector<string>::iterator itDS = DataSets.begin() ; itDS != DataSets.end() ; ++itDS ) {
+    if ( *itDS == DataSet ) FoundDS = true ;
+  } 
+  if ( ! FoundDS ) return 1. ;  
+  if      ( Method == 1 ) {
+     if ( Result_ > 0 )   return 1.0/Result_ ;
+     else                 return 0. ;
+  } 
+  else if ( Method == 2)  { 
+     return Result_ ;
+  }
+  else                    return 0. ;
+}
+
 // ---------------------- ExtEffTH2_t -------------------------------
 
 void ExtEffTH2_t::MakExtEffTH2 (TTree* Tree){
@@ -334,6 +380,23 @@ void UATAnaConfig::ReadCfg(TString CfgName) {
       TreeWeight.NickName   = "TreeWeight" ;
       TreeWeight.Expression = Elements.at(1); 
     }
+
+    // ExtEff
+    if ( Elements.at(0) == "ExtEff" ) {
+      ExtEff_t Eff;
+      Eff.NickName     = Elements.at(1) ;
+      Eff.Method       = atoi(Elements.at(2).c_str()) ;
+      Eff.X.NickName   = "X" ;
+      Eff.X.Expression = Elements.at(3) ;
+      TFile* File      = new TFile(Elements.at(5).c_str(),"READ"); 
+      TH1F*  hTmp      = (TH1F*) File->Get(Elements.at(6).c_str());
+      gROOT->cd();
+      Eff.hEff         = (TH1F*) hTmp->Clone();
+      delete hTmp;
+      File->Close();
+      ExtEff.push_back(Eff);
+    }
+
 
     // ExtEffTH2
     if ( Elements.at(0) == "ExtEffTH2" ) {

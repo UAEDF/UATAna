@@ -728,7 +728,7 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
      TH1F* allmc       = (TH1F*) (vBkgdStack.at(0))->Clone("allmc");
      TH1F* uncertainty = (TH1F*) hErr ->Clone("uncertainty");
 
-     for (UInt_t ibin=1; ibin<=ratio->GetNbinsX(); ibin++) {
+     for (Int_t ibin=1; ibin<= ratio->GetNbinsX(); ibin++) {
       Double_t mcValue = allmc->GetBinContent(ibin);
       Double_t mcError = allmc->GetBinError  (ibin);
 

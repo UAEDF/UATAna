@@ -774,15 +774,21 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
    pad1->Update();
    }
    //gPad->WaitPrimitive();
-/*
+
    if ( DrawRatio ) {
      //pad2->Update();
      //pad2->GetFrame()->DrawClone();
      //pad2->RedrawAxis();
-     cout << " I am against redrawing " << endl;
+     pad1->Update();
+     pad1->Modified();
+     pad2->Update();
+     pad2->Modified();
+     gPad->Update(); 
+     gPad->Modified();
+//     cout << " I am against redrawing " << endl;
    } 
    //gPad->WaitPrimitive();
-*/
+
    if ( SaveFig ) {
      TString Dir = "plots/" + Title + "/" ;
      if (!gSystem->OpenDirectory(Dir)) gSystem->MakeDirectory(Dir);

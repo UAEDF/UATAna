@@ -397,6 +397,23 @@ void UATAnaConfig::ReadCfg(TString CfgName) {
       ExtEff.push_back(Eff);
     }
 
+    if ( Elements.at(0) == "AppEff" ) {
+      string NickName = Elements.at(1) ;
+      bool FoundEff = false ;
+      for ( vector<ExtEff_t>::iterator itEff = ExtEff.begin() ; itEff != ExtEff.end() ; ++itEff ) { 
+        if ( itEff->NickName == NickName ) {
+          FoundEff = true ;
+          for ( int iMember = 2 ; iMember < (signed)Elements.size() ; ++iMember ) {
+            bool FoundDS = false;
+            for ( vector<string>::iterator itDS = (itEff->DataSets).begin() ; itDS != (itEff->DataSets).end() ; ++itDS ) {
+              if ( *itDS == Elements.at(iMember) ) FoundDS = true ;
+            } 
+            if ( !FoundDS ) (itEff->DataSets).push_back(Elements.at(iMember));
+          }
+        } 
+      }
+      if ( ! FoundEff ) cout << "[UATanaConfig::Init()] AppEff error !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
+    }
 
     // ExtEffTH2
     if ( Elements.at(0) == "ExtEffTH2" ) {

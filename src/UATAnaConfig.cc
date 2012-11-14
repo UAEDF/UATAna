@@ -183,7 +183,9 @@ void UATAnaConfig::Reset(){
   StatPrefix = "CMS_" ;
   StatMiddle = ""     ;
   StatSuffix = "_bin1";  
-
+  
+  DrawRatio = false;
+  DrawBgError = false;
 
 }
 

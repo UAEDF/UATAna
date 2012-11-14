@@ -10,6 +10,9 @@
    Y = Print Yields
    C = Plot Control Plots
    L = Prepare Limit Input Cards
+   S = Save Figures
+   D = Draw Ratio Plots
+   E = Draw Background Error
 */
 
 void UATAna(TString Cfg = "Config.cfg" , TString Steps = "R"){
@@ -38,6 +41,8 @@ void UATAna(TString Cfg = "Config.cfg" , TString Steps = "R"){
     UATAnaDisplay Display;
     Display.Init   (Config);
 
+    if ( Steps.Contains ('D') ) { Config.SetDrawRatio(true); Config.SetDrawBgError(true); }
+    if ( Steps.Contains ('E') ) Config.SetDrawBgError(true);
     if ( Steps.Contains ('F') ) Display.Yields(Config,1);
     if ( Steps.Contains ('Y') ) Display.Yields(Config,0,0);
     if ( Steps.Contains ('C') ) { 

@@ -247,7 +247,8 @@ class UATAnaConfig {
   string               StatSuffix;
 
    bool                MaskData;
- 
+   bool		       DrawRatio;
+   bool	               DrawBgError;
 
 
   public:
@@ -277,7 +278,8 @@ class UATAnaConfig {
   vector<PrintEvt_t>*     GetPrintEvt()       { return &PrintEvts   ; } 
   vector<string>*         GetCPExtraText()    { return &CPExtraText ; }
   vector<CutLines_t>*     GetCutLines()       { return &CutLines    ; } 
-  bool                    GetDrawBgError()    { return true ; }
+  bool                    GetDrawBgError()    { return DrawBgError ; }
+  bool                    GetDrawRatio()      { return DrawRatio ; }
   string                 GetSignalName()      { return SignalName  ; }
   string                  GetLimBinName()     { return LimBinName    ; }
   float                  GetHiggsMass()       { return HiggsMass     ; }
@@ -289,6 +291,8 @@ class UATAnaConfig {
   string                 GetStatSuffix()      { return  StatSuffix   ; }
   bool                   GetMaskData()        { return  MaskData     ; }  
 
+  void                   SetDrawRatio(bool In)       { DrawRatio = In ; }
+  void 			 SetDrawBgError(bool In)     { DrawBgError = In ; }
 
 };
 

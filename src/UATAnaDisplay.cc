@@ -366,14 +366,14 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
                                vector<string>  vLData , vector<string>  vLSignal , vector<string>  vLBkgd ,
                                vector<int>     vCData , vector<int>     vCSignal , vector<int>     vCBkgd ,
                                string  AxisT          , vector<string> CPExtraText , string Title           ,
-                               float           fLumi  , bool SaveFig    ,  bool DrawBgError , 
+                               float           fLumi  , bool SaveFig    ,  bool DrawBgError , bool DrawRatio , 
                                vector<string> CutLines  
 //                             string  XAxisT = "Var" , string  YAxisT = "entries / bin", string Title = "Title"      
                              ) {
 
 
- bool DrawRatio = true ;   
- //bool DrawRatio = false ;   
+// bool DrawRatio = true ;   
+// bool DrawRatio = false ;   
 
 
  TH1F* hErr ;
@@ -442,7 +442,6 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
     pad2->SetRightMargin(0.05);
     pad2->SetLeftMargin(0.15);
     pad2->Draw();
-
 
   } else {
     Canvas = new TCanvas( CanName , CanName , 600 , 600 );
@@ -718,13 +717,17 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
 
    }
 
-
    // ---- pad2: Ratio ----
 
-   if ( DrawRatio && vDataStack.size() > 0 && vBkgdStack  .size() > 0 ) {
+   if ( DrawRatio && ( vDataStack.size() > 0 || vSignalStack.size() > 0 ) && vBkgdStack  .size() > 0 ) {
 
      pad2->cd();
-     TH1F* ratio       = (TH1F*) (vDataStack.at(0))->Clone("ratio");
+     TH1F* ratio       ;
+     if ( vDataStack.size() > 0  ) 
+       ratio = (TH1F*) (vDataStack.at(0))->Clone("ratio");
+     else
+       ratio = (TH1F*) (vSignalStack.at(0))->Clone("ratio");
+
      TH1F* allmc       = (TH1F*) (vBkgdStack.at(0))->Clone("allmc");
      TH1F* uncertainty = (TH1F*) hErr ->Clone("uncertainty");
 
@@ -749,7 +752,11 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
      uncertainty->GetYaxis()->SetRangeUser(0, 2.5); 
      uncertainty->Draw("e2");
      ratio      ->Draw("ep,same");
-     Pad2TAxis(uncertainty, (vDataStack.at(0))->GetXaxis()->GetTitle(), "data / MC"); 
+     //Pad2TAxis(uncertainty, (vDataStack.at(0))->GetXaxis()->GetTitle(), "data / MC"); 
+     if ( vDataStack.size() > 0 )
+       Pad2TAxis(uncertainty, ratio->GetXaxis()->GetTitle(), "data / MC"); 
+     else 
+       Pad2TAxis(uncertainty, ratio->GetXaxis()->GetTitle(), "signal / MC"); 
 
      //ratio-> DrawCopy(); 
      //uncertainty->DrawCopy("histsame");
@@ -767,6 +774,7 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
    pad1->Update();
    }
    //gPad->WaitPrimitive();
+/*
    if ( DrawRatio ) {
      //pad2->Update();
      //pad2->GetFrame()->DrawClone();
@@ -774,7 +782,7 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
      cout << " I am against redrawing " << endl;
    } 
    //gPad->WaitPrimitive();
-
+*/
    if ( SaveFig ) {
      TString Dir = "plots/" + Title + "/" ;
      if (!gSystem->OpenDirectory(Dir)) gSystem->MakeDirectory(Dir);
@@ -1158,7 +1166,7 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg , bool SaveFig ) {
               for ( int iCL = 0 ; iCL < (signed) (itCL->CutLines).size() ; ++iCL ) CutLines.push_back((itCL->CutLines).at(iCL)) ;
             }
           }   
-          if (iSPlotAtLvl) PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->XaxisTitle , CPExtraText , Cfg.GetTAnaName() , Cfg.GetTargetLumi() , SaveFig , Cfg.GetDrawBgError() , CutLines ) ;
+          if (iSPlotAtLvl) PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->XaxisTitle , CPExtraText , Cfg.GetTAnaName() , Cfg.GetTargetLumi() , SaveFig , Cfg.GetDrawBgError() , Cfg.GetDrawRatio() , CutLines ) ;
         }
 
       } else {
@@ -1230,7 +1238,7 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg , bool SaveFig ) {
               for ( int iCL = 0 ; iCL < (signed) (itCL->CutLines).size() ; ++iCL ) CutLines.push_back((itCL->CutLines).at(iCL)) ;
             }
           } 
-          if (iSPlotAtLvl) PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->XaxisTitle , CPExtraText ,  Cfg.GetTAnaName() , Cfg.GetTargetLumi() , SaveFig , Cfg.GetDrawBgError() , CutLines ) ;
+          if (iSPlotAtLvl) PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->XaxisTitle , CPExtraText ,  Cfg.GetTAnaName() , Cfg.GetTargetLumi() , SaveFig , Cfg.GetDrawBgError() , Cfg.GetDrawRatio() , CutLines ) ;
         }
    
  
@@ -1295,7 +1303,7 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg , bool SaveFig ) {
               for ( int iCL = 0 ; iCL < (signed) (itCL->CutLines).size() ; ++iCL ) CutLines.push_back((itCL->CutLines).at(iCL)) ;
             }
           } 
-          if (iSPlotAtLvl) PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->XaxisTitle , CPExtraText ,  Cfg.GetTAnaName() , Cfg.GetTargetLumi() ,  SaveFig , Cfg.GetDrawBgError() , CutLines ) ;
+          if (iSPlotAtLvl) PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->XaxisTitle , CPExtraText ,  Cfg.GetTAnaName() , Cfg.GetTargetLumi() ,  SaveFig , Cfg.GetDrawBgError() , Cfg.GetDrawRatio(), CutLines ) ;
         }
 
       } else {
@@ -1370,7 +1378,7 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg , bool SaveFig ) {
               for ( int iCL = 0 ; iCL < (signed) (itCL->CutLines).size() ; ++iCL ) CutLines.push_back((itCL->CutLines).at(iCL)) ;
             }
           } 
-          if (iSPlotAtLvl ) PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->XaxisTitle , CPExtraText ,  Cfg.GetTAnaName() , Cfg.GetTargetLumi() , SaveFig , Cfg.GetDrawBgError() , CutLines ) ;
+          if (iSPlotAtLvl ) PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->XaxisTitle , CPExtraText ,  Cfg.GetTAnaName() , Cfg.GetTargetLumi() , SaveFig , Cfg.GetDrawBgError() , Cfg.GetDrawRatio(), CutLines ) ;
         }
       } 
 

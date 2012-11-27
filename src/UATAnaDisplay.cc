@@ -795,7 +795,8 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
       
      //Canvas->SaveAs(Dir+CanName+".gif"); 
      Canvas->SaveAs(Dir+CanName+".png"); 
-     Canvas->SaveAs(Dir+CanName+".pdf"); 
+     Canvas->SaveAs(Dir+CanName+".pdf");
+     gSystem->Exec("cp misc/index.php " + Dir); 
    }
    if ( DrawRatio ) {
       pad2->Close();

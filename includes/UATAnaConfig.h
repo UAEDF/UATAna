@@ -211,6 +211,7 @@ class UATAnaConfig {
 
   string                 TAnaName   ;  
   string                 OutDir     ;
+  float                  CmsEnergy  ;
 
   vector<InputData_t>    InputData  ;
   vector<DataGroup_t>    DataGroups ;
@@ -263,6 +264,7 @@ class UATAnaConfig {
   // Getters:
   string                  GetTAnaName()       { return TAnaName      ; } 
   string                  GetOutDir()         { return OutDir        ; } 
+  float                   GetCmsEnergy()      { return CmsEnergy     ; }
   vector<InputData_t>*    GetInputData()      { return &InputData    ; }
   vector<DataGroup_t>*    GetDataGroups()     { return &DataGroups   ; }
   vector<OutTTree_t>*     GetOutTTree()       { return &OutTTree     ; } 

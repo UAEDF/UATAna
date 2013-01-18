@@ -160,6 +160,8 @@ void UATAnaConfig::Reset(){
 
   TAnaName = "MyTAna" ;
 
+  CmsEnergy = 8. ; 
+
   InputData.clear();
 
   for ( vector<DataGroup_t>::iterator iDG = DataGroups.begin() ; iDG !=  DataGroups.end() ; ++iDG ) {
@@ -222,6 +224,10 @@ void UATAnaConfig::ReadCfg(TString CfgName) {
 
     // OutDir
     if ( Elements.at(0) == "OutDir" ) OutDir = Elements.at(1);
+
+    // CmsEnergy
+    if ( Elements.at(0) == "CmsEnergy" ) CmsEnergy = atof(Elements.at(1).c_str()) ;
+
 
     // InputData
     if ( Elements.at(0) == "InputData" ) {

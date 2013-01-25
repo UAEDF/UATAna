@@ -983,7 +983,27 @@ void UATAnaDisplay::Yields ( UATAnaConfig& Cfg , bool bPlot , bool bAll ) {
           for ( vector<BaseGroup_t>::iterator itBG = (itDG->Members).begin() ; itBG != (itDG->Members).end() ; ++itBG , ++iH ) {
             if ( itDG->GroupName == GroupName ) {
               if ( itBG->Data  ) { vData.push_back   ( (TH1F*) (CCflowGroup.at(iH))->Clone() ) ; vLData  .push_back(itBG->BaseName) ; }
-              if ( itBG->Bkgd  ) { vBkgd.push_back   ( (TH1F*) (CCflowGroup.at(iH))->Clone() ) ; vLBkgd  .push_back(itBG->BaseName) ; }
+//            if ( itBG->Bkgd  ) { vBkgd.push_back   ( (TH1F*) (CCflowGroup.at(iH))->Clone() ) ; vLBkgd  .push_back(itBG->BaseName) ; }
+              if ( itBG->Bkgd  ) { 
+                TH1F* hTmp = (TH1F*) (CCflowGroup.at(iH))->Clone() ;
+                for ( vector<Systematic_t>::iterator itSyst = (Cfg.GetSystematic())->begin() ; itSyst != (Cfg.GetSystematic())->end() ; ++ itSyst ) {
+                  bool pFound = false ;
+                  int  iSyst  = -1;
+                  int  jSyst  =  0;
+                  for ( vector<string>::iterator itSM  = (itSyst->systMember).begin() ; itSM != (itSyst->systMember).end() ; ++itSM , ++jSyst ) {
+                    if ( (*itSM) == itBG->BaseName ) { pFound = true ; iSyst = jSyst ; }
+                  }
+                  if ( pFound ) {
+                    for (Int_t i=1; i<= hTmp->GetNbinsX() ; i++) {
+                      double syst = abs(hTmp->GetBinContent(i) * (itSyst->systVal).at(iSyst) - hTmp->GetBinContent(i))  ;
+                      double err  = sqrt ( hTmp->GetBinError(i)*hTmp->GetBinError(i) + syst*syst) ;
+                      hTmp->SetBinError(i,err);
+                    } 
+                  }
+                }
+                vBkgd.push_back ( hTmp ) ;
+                vLBkgd  .push_back(itBG->BaseName) ;
+              }
               if ( itBG->Signal) { 
                 bool iSAssoc = false ; 
                 if (  (Cfg.GetCommonSign())->size() != 0 ) {         
@@ -1036,7 +1056,27 @@ void UATAnaDisplay::Yields ( UATAnaConfig& Cfg , bool bPlot , bool bAll ) {
                for ( vector<BaseGroup_t>::iterator itBG = (itDG->Members).begin() ; itBG != (itDG->Members).end() ; ++itBG , ++iH ) {
                  if ( itDG->GroupName == GroupName ) {
                    if ( itBG->Data  ) { vData.push_back   ( (TH1F*) ((iSF->CutFlow).at(iH))->Clone() ) ; vLData  .push_back(itBG->BaseName) ; }
-                   if ( itBG->Bkgd  ) { vBkgd.push_back   ( (TH1F*) ((iSF->CutFlow).at(iH))->Clone() ) ; vLBkgd  .push_back(itBG->BaseName) ; }
+//                   if ( itBG->Bkgd  ) { vBkgd.push_back   ( (TH1F*) ((iSF->CutFlow).at(iH))->Clone() ) ; vLBkgd  .push_back(itBG->BaseName) ; }
+                   if ( itBG->Bkgd  ) { 
+                     TH1F* hTmp = (TH1F*) ((iSF->CutFlow).at(iH))->Clone() ;  
+                     for ( vector<Systematic_t>::iterator itSyst = (Cfg.GetSystematic())->begin() ; itSyst != (Cfg.GetSystematic())->end() ; ++ itSyst ) {
+                       bool pFound = false ;
+                       int  iSyst  = -1;
+                       int  jSyst  =  0;
+                       for ( vector<string>::iterator itSM  = (itSyst->systMember).begin() ; itSM != (itSyst->systMember).end() ; ++itSM , ++jSyst ) {
+                         if ( (*itSM) == itBG->BaseName ) { pFound = true ; iSyst = jSyst ; }
+                       } 
+                       if ( pFound ) {
+                         for (Int_t i=1; i<= hTmp->GetNbinsX() ; i++) {
+                           double syst = abs(hTmp->GetBinContent(i) * (itSyst->systVal).at(iSyst) - hTmp->GetBinContent(i))  ;
+                           double err  = sqrt ( hTmp->GetBinError(i)*hTmp->GetBinError(i) + syst*syst) ;
+                           hTmp->SetBinError(i,err);
+                         }
+                       }                       
+                     }
+                     vBkgd.push_back ( hTmp ) ;
+                     vLBkgd  .push_back(itBG->BaseName) ;  
+                   }
                    if ( itBG->Signal) {
                      bool iSAssoc = false ;
                      if (  (((Cfg.GetScanCuts())->at(iGroup-1)).SignList).size() != 0 ) {

@@ -94,6 +94,13 @@ class DataSetWght_t : public TreeFormula_t {
   vector<string> DataSets ; 
 };
 
+class ScaleFactor_t : public TreeFormula_t {
+  public:
+  bool           isCC     ;  
+  vector<string> DataSets ;
+  vector<string> ScanName ;
+};
+
 
 class CommonCut_t : public TreeFormula_t {
   public:
@@ -219,6 +226,7 @@ class UATAnaConfig {
   vector<OutTTree_t>     OutTTree   ;
 
   vector<DataSetWght_t>  DataSetWghts ;
+  vector<ScaleFactor_t>  ScaleFactors ;
   TreeFormula_t          TreeWeight ; 
   vector<ExtEff_t>       ExtEff     ;
   vector<ExtEffTH2_t>    ExtEffTH2  ;
@@ -269,6 +277,7 @@ class UATAnaConfig {
   vector<DataGroup_t>*    GetDataGroups()     { return &DataGroups   ; }
   vector<OutTTree_t>*     GetOutTTree()       { return &OutTTree     ; } 
   vector<DataSetWght_t>*  GetDataSetWghts()   { return &DataSetWghts ; }
+  vector<ScaleFactor_t>*  GetScaleFactors()   { return &ScaleFactors ; }
   TreeFormula_t*          GetTreeWeight()     { return &TreeWeight   ; }
   vector<ExtEff_t>*       GetExtEff()         { return &ExtEff       ; }
   vector<ExtEffTH2_t>*    GetExtEffTH2()      { return &ExtEffTH2    ; }

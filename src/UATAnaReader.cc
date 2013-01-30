@@ -144,6 +144,8 @@ void UATAnaReader::Analyze( UATAnaConfig& Cfg , bool& bWTree ) {
    (Cfg.GetTreeWeight())->MakFormula(Tree);  
    // Create DataSetWght Formula
    for ( vector<DataSetWght_t>::iterator itDSW = (Cfg.GetDataSetWghts())->begin() ; itDSW != (Cfg.GetDataSetWghts())->end() ; ++itDSW ) itDSW->MakFormula(Tree); 
+   // Create ScaleFactor Formula
+   for ( vector<ScaleFactor_t>::iterator itSCF = (Cfg.GetScaleFactors())->begin() ; itSCF != (Cfg.GetScaleFactors())->end() ; ++itSCF ) itSCF->MakFormula(Tree);
    // Create CommonCuts Formula   
    for ( vector<CommonCut_t>::iterator itCC = (Cfg.GetCommonCuts())->begin() ; itCC != (Cfg.GetCommonCuts())->end() ; ++itCC) itCC->MakFormula(Tree);
    // Create ScanCuts Formula
@@ -184,6 +186,8 @@ void UATAnaReader::Analyze( UATAnaConfig& Cfg , bool& bWTree ) {
      (Cfg.GetTreeWeight())->EvaFormula();  
      // Evaluate DataSetWght Formula
      for ( vector<DataSetWght_t>::iterator itDSW = (Cfg.GetDataSetWghts())->begin() ; itDSW != (Cfg.GetDataSetWghts())->end() ; ++itDSW ) itDSW->EvaFormula();
+     // Evaluate ScaleFactor Formula
+     for ( vector<ScaleFactor_t>::iterator itSCF = (Cfg.GetScaleFactors())->begin() ; itSCF != (Cfg.GetScaleFactors())->end() ; ++itSCF ) itSCF->EvaFormula();
      // Evaluate CommonCuts Formula   
      for ( vector<CommonCut_t>::iterator itCC = (Cfg.GetCommonCuts())->begin() ; itCC != (Cfg.GetCommonCuts())->end() ; ++itCC) itCC->EvaFormula();
      // Evaluate ScanCuts Formula
@@ -223,7 +227,15 @@ void UATAnaReader::Analyze( UATAnaConfig& Cfg , bool& bWTree ) {
      for ( vector<CommonCut_t>::iterator itCC = (Cfg.GetCommonCuts())->begin() ; itCC != (Cfg.GetCommonCuts())->end() ; ++itCC , ++iCC ) {
        if ( !passCC ) continue; 
        if ( itCC->Result() ) {
-         FillCutFlow(Cfg,itD->NickName,iCC,Weight);
+         Double_t SFWeight = Weight ;
+         for ( vector<ScaleFactor_t>::iterator itSCF = (Cfg.GetScaleFactors())->begin() ; itSCF != (Cfg.GetScaleFactors())->end() ; ++itSCF ) {
+           if ( itSCF->isCC ) {  
+             for ( vector<string>::iterator itDSN = (itSCF->DataSets).begin() ; itDSN != (itSCF->DataSets).end() ; ++itDSN ) {
+               if ( (*itDSN) == itD->NickName ) SFWeight*= itSCF->Result();
+             }
+           }
+         }
+         FillCutFlow(Cfg,itD->NickName,iCC,SFWeight);
          // PrintEvt
          for ( vector<PrintEvt_t>::iterator itPE = (Cfg.GetPrintEvt())->begin() ; itPE !=  (Cfg.GetPrintEvt())->end() ; ++itPE) {
            if ( itPE->Type == 1 ) {
@@ -244,12 +256,22 @@ void UATAnaReader::Analyze( UATAnaConfig& Cfg , bool& bWTree ) {
      // ScanCuts
      if (passCC) {
        for ( vector<ScanCut_t>::iterator itSCG = (Cfg.GetScanCuts())->begin() ; itSCG != (Cfg.GetScanCuts())->end() ; ++itSCG) {
+         Double_t SFWeight = Weight ; 
+         for ( vector<ScaleFactor_t>::iterator itSCF = (Cfg.GetScaleFactors())->begin() ; itSCF != (Cfg.GetScaleFactors())->end() ; ++itSCF ) {
+           for ( vector<string>::iterator itSCN = (itSCF->ScanName).begin() ; itSCN != (itSCF->ScanName).end() ; ++itSCN ) {
+             if ( (*itSCN) == itSCG->ScanName ) {
+               for ( vector<string>::iterator itDSN = (itSCF->DataSets).begin() ; itDSN != (itSCF->DataSets).end() ; ++itDSN ) {
+                 if ( (*itDSN) == itD->NickName ) SFWeight*= itSCF->Result();
+               }
+             }
+           }
+         }
          bool passSC = true ; 
          int  iSC = 0 ;
          for ( vector<TreeFormula_t>::iterator itSC =  (itSCG->Cuts).begin() ; itSC != (itSCG->Cuts).end() ; ++itSC , ++iSC ) {
            if ( !passSC ) continue; 
            if ( itSC->Result() ) {
-             FillScanFlow(Cfg,itSCG->ScanName,itD->NickName,iSC,Weight);
+             FillScanFlow(Cfg,itSCG->ScanName,itD->NickName,iSC,SFWeight);
              // PrintEvt
              for ( vector<PrintEvt_t>::iterator itPE = (Cfg.GetPrintEvt())->begin() ; itPE !=  (Cfg.GetPrintEvt())->end() ; ++itPE) {
                if ( itPE->Type == 2 ) {
@@ -281,6 +303,7 @@ void UATAnaReader::Analyze( UATAnaConfig& Cfg , bool& bWTree ) {
          if ( itPE->Result() ) {
            cout << itPE->NickName << ": sample=" << itD->NickName << " " ;
            for (vector<TreeFormula_t>::iterator itVL = (itPE->VarList).begin() ; itVL != (itPE->VarList).end() ; ++itVL ) cout << setiosflags(ios::fixed) << setprecision(6) << itVL->NickName << "=" << itVL->Result() << " " ;
+           //for (vector<TreeFormula_t>::iterator itVL = (itPE->VarList).begin() ; itVL != (itPE->VarList).end() ; ++itVL ) cout << itVL->NickName << "=" << itVL->Result() << " " ;
            cout << endl;
          } 
        }
@@ -342,6 +365,9 @@ void UATAnaReader::Analyze( UATAnaConfig& Cfg , bool& bWTree ) {
    (Cfg.GetTreeWeight())->DelFormula();  
    // Delete DataSetWght Formula
    for ( vector<DataSetWght_t>::iterator itDSW = (Cfg.GetDataSetWghts())->begin() ; itDSW != (Cfg.GetDataSetWghts())->end() ; ++itDSW ) itDSW->DelFormula();
+   // Delete ScaleFactor Formula
+   for ( vector<ScaleFactor_t>::iterator itSCF = (Cfg.GetScaleFactors())->begin() ; itSCF != (Cfg.GetScaleFactors())->end() ; ++itSCF ) itSCF->DelFormula();
+
    // Delete CommonCuts Formula   
    for ( vector<CommonCut_t>::iterator iCC = (Cfg.GetCommonCuts())->begin() ; iCC != (Cfg.GetCommonCuts())->end() ; ++iCC) iCC->DelFormula();
    // Delete ScanCuts Formula
@@ -423,6 +449,16 @@ void UATAnaReader::FillPlotCC ( UATAnaConfig& Cfg , string& NickName , Double_t&
   int iH  = 0 ;
   int iHG = 0 ;
 
+  Double_t SFWeight = weight ;
+  for ( vector<ScaleFactor_t>::iterator itSCF = (Cfg.GetScaleFactors())->begin() ; itSCF != (Cfg.GetScaleFactors())->end() ; ++itSCF ) {
+    if ( itSCF->isCC ) {  
+      for ( vector<string>::iterator itDSN = (itSCF->DataSets).begin() ; itDSN != (itSCF->DataSets).end() ; ++itDSN ) {
+        if ( (*itDSN) == NickName ) SFWeight*= itSCF->Result();
+      }
+    }
+  }
+
+
   for ( vector<CtrlPlot_t>::iterator itCP = (Cfg.GetCtrlPlots())->begin() ; itCP != (Cfg.GetCtrlPlots())->end() ; ++itCP ) {
     Float_t Val = itCP->Result() ;
     for ( vector<string>::iterator itCC = (itCP->CCNickName).begin() ; itCC != (itCP->CCNickName).end() ; ++itCC ) {
@@ -438,13 +474,13 @@ void UATAnaReader::FillPlotCC ( UATAnaConfig& Cfg , string& NickName , Double_t&
       }   
       // InputData
       for ( vector<InputData_t>::iterator itD = (Cfg.GetInputData())->begin() ; itD != (Cfg.GetInputData())->end() ; ++itD , ++iH ) {
-         if ( itD->NickName == NickName && Cut ) (PlotCC.at(iH))->Fill( Val , weight );
+         if ( itD->NickName == NickName && Cut ) (PlotCC.at(iH))->Fill( Val , SFWeight  );
       }
       // DataGroups
       for ( vector<DataGroup_t>::iterator itDG = (Cfg.GetDataGroups())->begin() ; itDG !=  (Cfg.GetDataGroups())->end() ; ++itDG ) {
         for ( vector<BaseGroup_t>::iterator itBG = (itDG->Members).begin() ; itBG != (itDG->Members).end() ; ++itBG , ++iHG ) {
           for ( vector<string>::iterator itDN = (itBG->Members).begin() ; itDN != (itBG->Members).end() ; ++itDN ) {
-            if ( *itDN == NickName && Cut ) (PlotCCGroup.at(iHG))->Fill( Val , weight );
+            if ( *itDN == NickName && Cut ) (PlotCCGroup.at(iHG))->Fill( Val , SFWeight );
           }
         }
       }
@@ -465,6 +501,19 @@ void UATAnaReader::FillPlotSC ( UATAnaConfig& Cfg , string& NickName , Double_t&
     Float_t Val = itCP->Result() ;
     for ( vector<string>::iterator itSC = (itCP->SCNickName).begin() ; itSC != (itCP->SCNickName).end() ; ++itSC ) {
       for ( vector<ScanCut_t>::iterator itSCG = (Cfg.GetScanCuts())->begin() ; itSCG != (Cfg.GetScanCuts())->end() ; ++itSCG) { 
+
+        Double_t SFWeight = weight ; 
+        for ( vector<ScaleFactor_t>::iterator itSCF = (Cfg.GetScaleFactors())->begin() ; itSCF != (Cfg.GetScaleFactors())->end() ; ++itSCF ) {
+          for ( vector<string>::iterator itSCN = (itSCF->ScanName).begin() ; itSCN != (itSCF->ScanName).end() ; ++itSCN ) {
+            if ( (*itSCN) == itSCG->ScanName ) {
+              for ( vector<string>::iterator itDSN = (itSCF->DataSets).begin() ; itDSN != (itSCF->DataSets).end() ; ++itDSN ) {
+                if ( (*itDSN) == NickName ) SFWeight*= itSCF->Result();
+              }
+            }
+          }
+        }
+
+
         bool    Cut     = false      ;
         bool    passSC  = true       ;
         for ( vector<TreeFormula_t>::iterator itCut =  (itSCG->Cuts).begin() ; itCut != (itSCG->Cuts).end() ; ++itCut ) {
@@ -477,13 +526,13 @@ void UATAnaReader::FillPlotSC ( UATAnaConfig& Cfg , string& NickName , Double_t&
         } 
         // InputData
         for ( vector<InputData_t>::iterator itD = (Cfg.GetInputData())->begin() ; itD != (Cfg.GetInputData())->end() ; ++itD , ++iH) {
-           if (itD->NickName == NickName && Cut ) (PlotSC.at(iH))->Fill( Val , weight );
+           if (itD->NickName == NickName && Cut ) (PlotSC.at(iH))->Fill( Val , SFWeight );
         }
         // DataGroups
         for ( vector<DataGroup_t>::iterator itDG = (Cfg.GetDataGroups())->begin() ; itDG !=  (Cfg.GetDataGroups())->end() ; ++itDG ) {
           for ( vector<BaseGroup_t>::iterator itBG = (itDG->Members).begin() ; itBG != (itDG->Members).end() ; ++itBG , ++iHG ) {
             for ( vector<string>::iterator itDN = (itBG->Members).begin() ; itDN != (itBG->Members).end() ; ++itDN ) {
-              if ( *itDN == NickName && Cut ) (PlotSCGroup.at(iHG))->Fill( Val , weight );
+              if ( *itDN == NickName && Cut ) (PlotSCGroup.at(iHG))->Fill( Val , SFWeight );
             }
           }
         }

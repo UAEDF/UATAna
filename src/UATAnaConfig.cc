@@ -383,6 +383,20 @@ void UATAnaConfig::ReadCfg(TString CfgName) {
       DataSetWghts.push_back ( DSWght ); 
     }
 
+    // ScaleFactors
+    if ( Elements.at(0) == "ScaleFactor" ) {
+      ScaleFactor_t ScFac ;
+      ScFac.NickName   = Elements.at(1) ;
+      ScFac.Expression = Elements.at(2) ;
+      ScFac.isCC       = atoi(Elements.at(3).c_str()) ; 
+      vector<string> ScDaSet = UATokenize( Elements.at(4) , ':' );
+      for (vector<string>::iterator iScDaSet = ScDaSet.begin() ; iScDaSet != ScDaSet.end() ; ++iScDaSet ) (ScFac.DataSets).push_back(*iScDaSet) ;
+      vector<string> ScScNam = UATokenize( Elements.at(5) , ':' );
+      for (vector<string>::iterator iScScNam = ScScNam.begin() ; iScScNam != ScScNam.end() ; ++iScScNam ) (ScFac.ScanName).push_back(*iScScNam) ;
+      ScaleFactors.push_back ( ScFac ) ;
+    }
+
+
     // TreeWeight
     if ( Elements.at(0) == "TreeWeight" ) {
       TreeWeight.NickName   = "TreeWeight" ;

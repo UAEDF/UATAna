@@ -1,6 +1,20 @@
 
 #include "../includes/UATAnaReader.h"
 #include <iomanip>
+#include <sys/stat.h>
+#include <sys/types.h>
+
+bool direxists( string dirName) {
+	TIter keys(gDirectory->GetListOfKeys());
+	bool exists = false;
+	while (TObject *obj = keys()) {
+		if(obj->GetName() ==dirName) {
+			exists = true;
+			break;
+		}
+	}
+	return exists;
+}
 
 //----------------------------------- Init() ------------------------------------------
 
@@ -8,6 +22,23 @@ void UATAnaReader::Init ( UATAnaConfig& Cfg , bool& bWTree ) {
 
   TH1::SetDefaultSumw2(1);
 
+  // Output issues check
+  if (bWTree) {
+	  struct stat st;
+	  if ( ! stat((Cfg.GetOutDir()).c_str(), &st) == 0 ) {
+		cout << "\E[0;31mDirectory " << Cfg.GetOutDir() << " doesn't exist.\E[m";
+		mkdir((Cfg.GetOutDir()).c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+		cout << "\E[0;32m --> Directory " << Cfg.GetOutDir() << " created.\E[m" << endl;
+	  }
+	  else if ( stat((Cfg.GetOutDir()).c_str(), &st) == 0 && ! S_ISDIR(st.st_mode)) {
+		cout << "\E[0;31m" << Cfg.GetOutDir() << " is not a directory. Stopping.\E[m" << endl;
+		exit(0);
+	  }
+	  else {
+	    cout << "\E[0;34mOutput in " << Cfg.GetOutDir() << ".\E[m" << endl;
+	  }
+  }
+  
   // CommonCuts cutflow histograms
   for ( vector<InputData_t>::iterator itD = (Cfg.GetInputData())->begin() ; itD != (Cfg.GetInputData())->end() ; ++itD) {
     TString HistName = "CutFlow_"+itD->NickName ;
@@ -42,7 +73,7 @@ void UATAnaReader::Init ( UATAnaConfig& Cfg , bool& bWTree ) {
     SCflowGroup.push_back( ScanFlow ) ;
   } 
 
-  // CtrlPlots histograms 
+  // if (!direxists((*itSC).c_str())) CtrlPlots histograms 
   for ( vector<CtrlPlot_t>::iterator itCP = (Cfg.GetCtrlPlots())->begin() ; itCP != (Cfg.GetCtrlPlots())->end() ; ++itCP ) {
     // CommonCuts
     for ( vector<string>::iterator itCC = (itCP->CCNickName).begin() ; itCC != (itCP->CCNickName).end() ; ++itCC ) {
@@ -546,42 +577,43 @@ void UATAnaReader::FillPlotSC ( UATAnaConfig& Cfg , string& NickName , Double_t&
 
 //----------------------------------- End() ------------------------------------------
 
-void UATAnaReader::End  ( UATAnaConfig& Cfg , bool& bWTree ) {
+void UATAnaReader::End  ( UATAnaConfig& Cfg, bool& bWTree ) { 
+  (void)bWTree; 
 
   string fileName = Cfg.GetOutDir() + "/" + Cfg.GetTAnaName()+".root";
   File = new TFile(fileName.c_str(),"RECREATE");  
   
   // CommonCuts cutflow histograms
   File->cd();  
-  gDirectory->mkdir("CutFlow");
+  if (!direxists("CutFlow")) gDirectory->mkdir("CutFlow");
   gDirectory->cd   ("CutFlow");
-  gDirectory->mkdir("CommonCuts");
+  if (!direxists("CommonCuts")) gDirectory->mkdir("CommonCuts");
   gDirectory->cd   ("CommonCuts");
-  gDirectory->mkdir("InputData");
+  if (!direxists("InputData")) gDirectory->mkdir("InputData");
   gDirectory->cd   ("InputData");
   for ( vector<TH1F*>::iterator itH = CCflow.begin() ; itH != CCflow.end() ; ++itH ) (*itH)->Write();
   gDirectory->cd("../");
-  gDirectory->mkdir("DataGroups");
+  if (!direxists("DataGroups")) gDirectory->mkdir("DataGroups");
   gDirectory->cd   ("DataGroups");
   for ( vector<TH1F*>::iterator itH = CCflowGroup.begin() ; itH != CCflowGroup.end() ; ++itH ) (*itH)->Write();
   gDirectory->cd("../../");
   
   // ScanCuts cutflow histograms
-  gDirectory->mkdir("ScanCuts");
+  if (!direxists("ScanCuts")) gDirectory->mkdir("ScanCuts");
   gDirectory->cd   ("ScanCuts");
-  gDirectory->mkdir("InputData");
+  if (!direxists("InputData")) gDirectory->mkdir("InputData");
   gDirectory->cd   ("InputData");
-  for ( vector<ScanFlow_t>::iterator iSF = SCflow.begin() ; iSF != SCflow.end() ; ++iSF ) {   
-    gDirectory->mkdir((iSF->ScanName).c_str());
+  for ( vector<ScanFlow_t>::iterator iSF = SCflow.begin() ; iSF != SCflow.end() ; ++iSF ) {  
+	if (!direxists((iSF->ScanName).c_str())) gDirectory->mkdir((iSF->ScanName).c_str());
     gDirectory->cd   ((iSF->ScanName).c_str());
     for ( vector<TH1F*>::iterator itH = (iSF->CutFlow).begin() ; itH !=  (iSF->CutFlow).end() ; ++itH ) (*itH)->Write();
     gDirectory->cd("../");
   }
   gDirectory->cd("../");
-  gDirectory->mkdir("DataGroups");
+  if (!direxists("DataGroups")) gDirectory->mkdir("DataGroups");
   gDirectory->cd   ("DataGroups");
   for ( vector<ScanFlow_t>::iterator iSF = SCflowGroup.begin() ; iSF != SCflowGroup.end() ; ++iSF ) {   
-    gDirectory->mkdir((iSF->ScanName).c_str());
+    if (!direxists((iSF->ScanName).c_str())) gDirectory->mkdir((iSF->ScanName).c_str());
     gDirectory->cd   ((iSF->ScanName).c_str());
     for ( vector<TH1F*>::iterator itH = (iSF->CutFlow).begin() ; itH !=  (iSF->CutFlow).end() ; ++itH ) (*itH)->Write();
     gDirectory->cd("../");
@@ -589,19 +621,19 @@ void UATAnaReader::End  ( UATAnaConfig& Cfg , bool& bWTree ) {
   
   // CtrlPlots CommonCuts
   File->cd();  
-  gDirectory->mkdir("CtrlPlot");
+  if (!direxists("CtrlPlot")) gDirectory->mkdir("CtrlPlot");
   gDirectory->cd   ("CtrlPlot");
-  gDirectory->mkdir("CommonCuts");
+  if (!direxists("")) gDirectory->mkdir("CommonCuts");
   gDirectory->cd   ("CommonCuts");
 
   // ... InputData
-  gDirectory->mkdir("InputData");
+  if (!direxists("InputData")) gDirectory->mkdir("InputData");
   gDirectory->cd   ("InputData");
 
   int iH = 0 ;
   for ( vector<CtrlPlot_t>::iterator itCP = (Cfg.GetCtrlPlots())->begin() ; itCP != (Cfg.GetCtrlPlots())->end() ; ++itCP ) {
     for ( vector<string>::iterator itCC = (itCP->CCNickName).begin() ; itCC != (itCP->CCNickName).end() ; ++itCC ) {
-      gDirectory->mkdir((*itCC).c_str());
+      if (!direxists((*itCC).c_str())) gDirectory->mkdir((*itCC).c_str());
       gDirectory->cd   ((*itCC).c_str());
       for ( vector<InputData_t>::iterator itD = (Cfg.GetInputData())->begin() ; itD != (Cfg.GetInputData())->end() ; ++itD , ++iH ) (PlotCC.at(iH))->Write();
       gDirectory->cd("../");
@@ -610,13 +642,13 @@ void UATAnaReader::End  ( UATAnaConfig& Cfg , bool& bWTree ) {
  
   // ... DataGroups
   gDirectory->cd("../");
-  gDirectory->mkdir("DataGroups");
+  if (!direxists("DataGroups")) gDirectory->mkdir("DataGroups");
   gDirectory->cd   ("DataGroups");
 
   int iHG = 0 ;
   for ( vector<CtrlPlot_t>::iterator itCP = (Cfg.GetCtrlPlots())->begin() ; itCP != (Cfg.GetCtrlPlots())->end() ; ++itCP ) {
     for ( vector<string>::iterator itCC = (itCP->CCNickName).begin() ; itCC != (itCP->CCNickName).end() ; ++itCC ) {
-      gDirectory->mkdir((*itCC).c_str());
+      if (!direxists((*itCC).c_str())) gDirectory->mkdir((*itCC).c_str());
       gDirectory->cd   ((*itCC).c_str());
       for ( vector<DataGroup_t>::iterator itDG = (Cfg.GetDataGroups())->begin() ; itDG !=  (Cfg.GetDataGroups())->end() ; ++itDG ) {
         for ( vector<BaseGroup_t>::iterator itBG = (itDG->Members).begin() ; itBG != (itDG->Members).end() ; ++itBG , ++iHG ) (PlotCCGroup.at(iHG))->Write();
@@ -627,22 +659,22 @@ void UATAnaReader::End  ( UATAnaConfig& Cfg , bool& bWTree ) {
 
   // CtrlPlots CommonCuts
   File->cd();  
-  gDirectory->mkdir("CtrlPlot");
+  if (!direxists("CtrlPlot")) gDirectory->mkdir("CtrlPlot");
   gDirectory->cd   ("CtrlPlot");
-  gDirectory->mkdir("ScanCuts");
+  if (!direxists("ScanCuts")) gDirectory->mkdir("ScanCuts");
   gDirectory->cd   ("ScanCuts");
 
   // ... InputData
-  gDirectory->mkdir("InputData");
+  if (!direxists("InputData")) gDirectory->mkdir("InputData");
   gDirectory->cd   ("InputData");
     
   iH = 0 ;
   for ( vector<CtrlPlot_t>::iterator itCP = (Cfg.GetCtrlPlots())->begin() ; itCP != (Cfg.GetCtrlPlots())->end() ; ++itCP ) {
     for ( vector<string>::iterator itSC = (itCP->SCNickName).begin() ; itSC != (itCP->SCNickName).end() ; ++itSC ) {
       for ( vector<ScanCut_t>::iterator iSCG = (Cfg.GetScanCuts())->begin() ; iSCG != (Cfg.GetScanCuts())->end() ; ++iSCG) { 
-        gDirectory->mkdir((iSCG->ScanName).c_str());
+        if (!direxists((iSCG->ScanName).c_str())) gDirectory->mkdir((iSCG->ScanName).c_str());
         gDirectory->cd   ((iSCG->ScanName).c_str());
-        gDirectory->mkdir((*itSC).c_str());
+        if (!direxists((*itSC).c_str())) gDirectory->mkdir((*itSC).c_str());
         gDirectory->cd   ((*itSC).c_str());
         for ( vector<InputData_t>::iterator itD = (Cfg.GetInputData())->begin() ; itD != (Cfg.GetInputData())->end() ; ++itD , ++iH) (PlotSC.at(iH))->Write();
         gDirectory->cd("../../"); 
@@ -652,16 +684,16 @@ void UATAnaReader::End  ( UATAnaConfig& Cfg , bool& bWTree ) {
 
   // ... DataGroups
   gDirectory->cd("../");
-  gDirectory->mkdir("DataGroups");
+  if (!direxists("DataGroups")) gDirectory->mkdir("DataGroups");
   gDirectory->cd   ("DataGroups");
 
   iHG = 0 ;
   for ( vector<CtrlPlot_t>::iterator itCP = (Cfg.GetCtrlPlots())->begin() ; itCP != (Cfg.GetCtrlPlots())->end() ; ++itCP ) {
     for ( vector<string>::iterator itSC = (itCP->SCNickName).begin() ; itSC != (itCP->SCNickName).end() ; ++itSC ) {
       for ( vector<ScanCut_t>::iterator iSCG = (Cfg.GetScanCuts())->begin() ; iSCG != (Cfg.GetScanCuts())->end() ; ++iSCG) { 
-        gDirectory->mkdir((iSCG->ScanName).c_str());
+        if (!direxists((iSCG->ScanName).c_str())) gDirectory->mkdir((iSCG->ScanName).c_str());
         gDirectory->cd   ((iSCG->ScanName).c_str());
-        gDirectory->mkdir((*itSC).c_str());
+        if (!direxists((*itSC).c_str())) gDirectory->mkdir((*itSC).c_str());
         gDirectory->cd   ((*itSC).c_str());
         for ( vector<DataGroup_t>::iterator itDG = (Cfg.GetDataGroups())->begin() ; itDG !=  (Cfg.GetDataGroups())->end() ; ++itDG ) {
           for ( vector<BaseGroup_t>::iterator itBG = (itDG->Members).begin() ; itBG != (itDG->Members).end() ; ++itBG , ++iHG ) (PlotSCGroup.at(iHG))->Write();

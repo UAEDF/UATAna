@@ -11,6 +11,8 @@
 #include <TGraph.h>
 #include <TGraphAsymmErrors.h>
 #include <TMath.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include "src/tdrstyle.C"
 #include "src/LatinoStyle2.C"
@@ -150,6 +152,8 @@ Double_t GetMaximumIncludingErrors(TH1F* h)
 //----------------------------------- Init() ------------------------------------------
 
 void UATAnaDisplay::Init ( UATAnaConfig& Cfg ) {
+  // no info messages from ROOT
+  gROOT->ProcessLine("gErrorIgnoreLevel = 1001;");
 
   //setTDRStyle();
   LatinoStyle2();
@@ -170,7 +174,26 @@ void UATAnaDisplay::Init ( UATAnaConfig& Cfg ) {
   vector<TH1F*> PlotSC_ ;
   vector<TH1F*> PlotCCGroup_ ;
   vector<TH1F*> PlotSCGroup_ ;
-
+  
+  // Output issues check
+  struct stat st;
+  if ( ! stat("plots", &st) == 0) {
+  	cout << "\E[0;31mDirectory plots/ doesn't exist. Stopping.\E[m" << endl;
+	exit(0);
+  }
+  if ( ! stat(("plots/"+Cfg.GetTAnaName()).c_str(), &st) == 0 ) {
+	cout << "\E[0;31mDirectory plots/" << Cfg.GetTAnaName() << " doesn't exist.\E[m";
+	mkdir(("plots/"+Cfg.GetTAnaName()).c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+	cout << "\E[0;32m --> Directory plots/" << Cfg.GetTAnaName() << " created.\E[m" << endl;
+  }
+  else if ( stat(("plots/"+Cfg.GetTAnaName()).c_str(), &st) == 0 && ! S_ISDIR(st.st_mode)) {
+	cout << "\E[0;31mplots/" << Cfg.GetTAnaName() << " is not a directory. Stopping.\E[m" << endl;
+	exit(0);
+  }
+  else {
+    cout << "\E[0;34mPlots in plots/" << Cfg.GetTAnaName() << ".\E[m" << endl;
+  }
+  
   // CommonCuts cutflow histograms
   
   File->cd();
@@ -376,7 +399,7 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
 // bool DrawRatio = false ;   
 
 
- TH1F* hErr ;
+ TH1F* hErr = new TH1F();
 
  // ---- Lin/Log
 
@@ -408,7 +431,6 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
   TPad* pad1;
   TPad* pad2;
   if ( DrawRatio ) {
-
     Canvas = new TCanvas( CanName , CanName , 600 , 1.2*600 );
     //Addint the top bottom margins causes problems. pad2 has also a different ymax value then the ymin of pad1. this is necessary. If you remove the -0.03 in pad2, the letter "N" from prediction will disappear.
 
@@ -435,7 +457,6 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
     pad1->SetLeftMargin(0.15);
     pad1->Draw();
     
-
     pad2 = new TPad("pad2", "pad2", 0, 0, 1, 0.3); 
     pad2->SetTopMargin   (-0.08);
     pad2->SetBottomMargin(0.35);
@@ -448,6 +469,7 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
     pad1 = (TPad*)Canvas->GetPad(0);
     pad1->SetRightMargin(0.05);
     pad1->SetLeftMargin(0.15);
+	pad2 = (TPad*)Canvas->GetPad(0);
   }
 
 
@@ -539,6 +561,10 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
    if      ( vBkgdStack  .size() > 0 ) BinWidth = vBkgdStack  .at(0)->GetBinWidth(0);
    else if ( vSignalStack.size() > 0 ) BinWidth = vSignalStack.at(0)->GetBinWidth(0);
    else if ( vDataStack  .size() > 0 ) BinWidth = vDataStack  .at(0)->GetBinWidth(0);
+   else {
+     BinWidth = 1.0;
+	 cout << "Defaulted BinWidth to 1.0 (this doesn't necessarily make sense)." << endl;
+   }
    int precision = 0;
    Double_t temp = BinWidth;
    while( ! ( floor(temp)==temp)) {
@@ -608,7 +634,7 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
      vBkgdStack.at(0)->DrawCopy("hist");
      for (int iD=1 ; iD < (signed) vBkgdStack.size()    ; ++iD ) vBkgdStack.at(iD)   ->DrawCopy("histsame");  
      if (DrawBgError) {
-       hErr =  (TH1F*) vBkgdStack.at(0)->Clone() ;
+       hErr = (TH1F*) vBkgdStack.at(0)->Clone() ;
        hErr->SetFillColor(13);
        hErr->SetLineColor( 0);
        hErr->SetFillStyle(3345);
@@ -682,6 +708,10 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
    if      ( vBkgdStack  .size() > 0 ) XRange = vBkgdStack  .at(0)->GetBinLowEdge(vBkgdStack  .at(0)->GetNbinsX()) - vBkgdStack  .at(0)->GetBinLowEdge(1);
    else if ( vSignalStack.size() > 0 ) XRange = vSignalStack.at(0)->GetBinLowEdge(vSignalStack.at(0)->GetNbinsX()) - vSignalStack.at(0)->GetBinLowEdge(1);
    else if ( vDataStack  .size() > 0 ) XRange = vDataStack  .at(0)->GetBinLowEdge(vDataStack  .at(0)->GetNbinsX()) - vDataStack  .at(0)->GetBinLowEdge(1);
+   else {
+     XRange = 1.0;
+	 cout << "Defaulted XRange to 1.0 (this doesn't necessarily make sense)." << endl;
+   }
    for ( int iCL = 0 ; iCL < (signed) CutLines.size() ; ++iCL ) {
      vector<string> CLConf = UATokenize( CutLines.at(iCL) , ':' );
 
@@ -793,7 +823,7 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
      TString Dir = "plots/" + Title + "/" ;
      if (!gSystem->OpenDirectory(Dir)) gSystem->MakeDirectory(Dir);
       
-     //Canvas->SaveAs(Dir+CanName+".gif"); 
+     //Canvas->SaveAs(Dir+CanName+".gif");
      Canvas->SaveAs(Dir+CanName+".png"); 
      Canvas->SaveAs(Dir+CanName+".pdf");
      gSystem->Exec("cp misc/index.php " + Dir); 
@@ -1120,7 +1150,7 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg , bool SaveFig ) {
     int iGroup  = -1 ;
     int iData   = -1 ;
     int iLevel  = -1 ;
-   
+
     cout << endl ;
     cout << "Control Plots: " << endl ;
     cout << "  0 = CommonCuts" << endl;
@@ -1432,8 +1462,21 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg , bool SaveFig ) {
 
     }
 
-    cout << "Next choice ? [0/1] : " ;
-    cin >> iContinue ;     
+  	// last selections and new selection
+  	cout << "\E[0;34mLast choice: \E[m\n" \
+		<< setw(19) << "Cut group: " << setw(4) << iGroup << "   " << left << (iGroup==0 ? "CommonCuts" : Cfg.GetScanCuts()->at(iGroup-1).ScanName) << "\n" << right \
+		<< setw(19) << "Data group: " << setw(4) << iData << "   " << left << (iData==0 ? "All InputData" : Cfg.GetDataGroups()->at(iData-1).GroupName) << "\n" << right \
+		<< setw(19) << "Cut level: " << setw(4) << iLevel << "   "  << left << Cuts.at(iLevel) << right << endl;
+	cout.unsetf(ios::left);
+    cout << "\E[0;34mNext choice ? [0 / 1 (close) / 2 (don't close)] : \E[m" ;
+    cin >> iContinue ;
+	if (iContinue == 1) {
+		TIter canclose(gROOT->GetListOfCanvases());
+	    while (TCanvas *can = (TCanvas*)canclose()) {
+			cout << "\tClosed " << can->GetName() << endl;
+			can->Close();
+		}	
+	}
   }
 
   return;

@@ -4,6 +4,7 @@ void LatinoStyle2()
 {
   TStyle* GloStyle;
   GloStyle = gStyle;
+  (void)GloStyle;
 
   TStyle* LatinosStyle = new TStyle("LatinosStyle", "LatinosStyle");
   gStyle = LatinosStyle;

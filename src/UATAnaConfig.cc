@@ -203,10 +203,10 @@ void UATAnaConfig::ReadCfg(TString CfgName) {
     return ;
   }
 
-  char str[2000];
+  char str[5000];
   while( Cfg ) {
 
-    Cfg.getline(str,2000);
+    Cfg.getline(str,5000);
     if(!Cfg) continue;
     istringstream iss(str);
 //    if (iss.str().find("#") != string::npos ) continue;

@@ -189,6 +189,9 @@ void UATAnaConfig::Reset(){
   DrawRatio = false;
   DrawBgError = false;
 
+  Func2Load.clear();
+  Func2Init.clear();
+
 }
 
 // ---------------------- ReadCfg() --------------------------------
@@ -678,7 +681,24 @@ void UATAnaConfig::ReadCfg(TString CfgName) {
       MaskData = atoi(Elements.at(1).c_str()) ;
     }
 
+    // External Functions to be loaded
+    if (  Elements.at(0) == "Func2Load" ) {
+      vector<string> Member = UATokenize( Elements.at(1) , ':' );
+      for ( int iM = 0 ; iM < (signed) Member.size() ; ++iM ) Func2Load.push_back(Member.at(iM)) ;
+    }
+
+    // External Functions to be initialized
+    if (  Elements.at(0) == "Func2Init" ) {
+      Func2Init_t F2Init ;
+      F2Init.DataName = Elements.at(1);
+      F2Init.Command  = Elements.at(2);
+      Func2Init.push_back( F2Init ) ;
+    }
+
+
+
   } 
+
 
   return;
 }

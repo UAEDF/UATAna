@@ -138,6 +138,7 @@ class CtrlPlot_t : public TreeFormula_t {
   string         XaxisTitle ;
 };
 
+
 class PrintEvt_t : public TreeFormula_t {
   public:
   PrintEvt_t(){;}
@@ -211,6 +212,11 @@ class CutLines_t {
   vector<string> CutLines ;
 };
 
+class Func2Init_t {
+  public:
+  string DataName ;
+  string Command  ; 
+};
 
 class UATAnaConfig {
 
@@ -259,6 +265,9 @@ class UATAnaConfig {
    bool		       DrawRatio;
    bool	               DrawBgError;
 
+  // External Functions
+  vector<string>       Func2Load ; 
+  vector<Func2Init_t>  Func2Init ;
 
   public:
 
@@ -301,6 +310,8 @@ class UATAnaConfig {
   string                 GetStatMiddle()      { return  StatMiddle   ; }
   string                 GetStatSuffix()      { return  StatSuffix   ; }
   bool                   GetMaskData()        { return  MaskData     ; }  
+  vector<string>*        GetFunc2Load()       { return &Func2Load    ; }
+  vector<Func2Init_t>*   GetFunc2Init()       { return &Func2Init    ; } 
 
   void                   SetDrawRatio(bool In)       { DrawRatio = In ; }
   void 			 SetDrawBgError(bool In)     { DrawBgError = In ; }

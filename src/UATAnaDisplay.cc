@@ -177,11 +177,11 @@ void UATAnaDisplay::Init ( UATAnaConfig& Cfg ) {
   
   // Output issues check
   struct stat st;
-  if ( ! stat("plots", &st) == 0) {
+  if ( ! (stat("plots", &st) == 0)) {
   	cout << "\E[0;31mDirectory plots/ doesn't exist. Stopping.\E[m" << endl;
 	exit(0);
   }
-  if ( ! stat(("plots/"+Cfg.GetTAnaName()).c_str(), &st) == 0 ) {
+  if ( ! (stat(("plots/"+Cfg.GetTAnaName()).c_str(), &st) == 0 )) {
 	cout << "\E[0;31mDirectory plots/" << Cfg.GetTAnaName() << " doesn't exist.\E[m";
 	mkdir(("plots/"+Cfg.GetTAnaName()).c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 	cout << "\E[0;32m --> Directory plots/" << Cfg.GetTAnaName() << " created.\E[m" << endl;
@@ -524,6 +524,7 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
      for (int iD2Sum=iD+1 ; iD2Sum < (signed)  vBkgd.size() ; ++iD2Sum ) {
        iStack->Add(vBkgd.at(iD2Sum));
      }
+     iStack->SetFillStyle(1001); 
      if ( vCBkgd.size() > 0) {
        iStack->SetLineColor(vCBkgd.at(iD));
        iStack->SetFillColor(vCBkgd.at(iD));

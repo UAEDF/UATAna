@@ -1,4 +1,8 @@
 
+#if defined(__CINT__) 
+#define _SYS_TYPES_H_ 
+#endif 
+
 #include "src/UATAnaConfig.cc"
 #include "src/UATAnaReader.cc"
 #include "src/UATAnaDisplay.cc"

@@ -25,7 +25,7 @@ void UATAnaReader::Init ( UATAnaConfig& Cfg , bool& bWTree ) {
   // Output issues check
   if (bWTree) {
 	  struct stat st;
-	  if ( ! stat((Cfg.GetOutDir()).c_str(), &st) == 0 ) {
+	  if ( ! (stat((Cfg.GetOutDir()).c_str(), &st) == 0) ) {
 		cout << "\E[0;31mDirectory " << Cfg.GetOutDir() << " doesn't exist.\E[m";
 		mkdir((Cfg.GetOutDir()).c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 		cout << "\E[0;32m --> Directory " << Cfg.GetOutDir() << " created.\E[m" << endl;
@@ -103,6 +103,14 @@ void UATAnaReader::Init ( UATAnaConfig& Cfg , bool& bWTree ) {
         } 
       }
     }
+  }
+
+
+  // Load External Functions
+  for ( vector<string>::iterator itFunc = (Cfg.GetFunc2Load())->begin() ; itFunc !=  (Cfg.GetFunc2Load())->end() ; ++ itFunc ) {
+     cout << "Loading External Function : " << *itFunc << endl;
+     TString Command = ".L "+(*itFunc)+"++";
+     gROOT->ProcessLineSync(Command);
   }
 
   // Output TTree
@@ -206,6 +214,17 @@ void UATAnaReader::Analyze( UATAnaConfig& Cfg , bool& bWTree ) {
    for ( vector<ExtEff_t>::iterator itEff = (Cfg.GetExtEff())->begin() ; itEff != (Cfg.GetExtEff())->end() ; ++itEff ) itEff->MakExtEff(Tree);  
    for ( vector<ExtEffTH2_t>::iterator itEff = (Cfg.GetExtEffTH2())->begin() ; itEff != (Cfg.GetExtEffTH2())->end() ; ++itEff ) itEff->MakExtEffTH2(Tree);  
 
+   // ------------- External Functions Init ----
+
+   for ( vector<Func2Init_t>::iterator itFunc = (Cfg.GetFunc2Init())->begin() ; itFunc !=  (Cfg.GetFunc2Init())->end() ; ++ itFunc ) {
+     if ( itD->NickName == itFunc->DataName ||  itFunc->DataName == "*" ) {
+       cout << "Init External Function : " << itFunc->Command << endl;
+       gROOT->ProcessLineSync(TString(itFunc->Command));
+     }
+  }
+
+
+
    // ------------- Loop -----------------------
 
    Int_t nEntries = Tree->GetEntries();
@@ -216,7 +235,7 @@ void UATAnaReader::Analyze( UATAnaConfig& Cfg , bool& bWTree ) {
      // Evaluate TreeWeight Formula
      (Cfg.GetTreeWeight())->EvaFormula();  
      // Evaluate DataSetWght Formula
-     for ( vector<DataSetWght_t>::iterator itDSW = (Cfg.GetDataSetWghts())->begin() ; itDSW != (Cfg.GetDataSetWghts())->end() ; ++itDSW ) itDSW->EvaFormula();
+     //for ( vector<DataSetWght_t>::iterator itDSW = (Cfg.GetDataSetWghts())->begin() ; itDSW != (Cfg.GetDataSetWghts())->end() ; ++itDSW ) itDSW->EvaFormula();
      // Evaluate ScaleFactor Formula
      for ( vector<ScaleFactor_t>::iterator itSCF = (Cfg.GetScaleFactors())->begin() ; itSCF != (Cfg.GetScaleFactors())->end() ; ++itSCF ) itSCF->EvaFormula();
      // Evaluate CommonCuts Formula   
@@ -242,7 +261,10 @@ void UATAnaReader::Analyze( UATAnaConfig& Cfg , bool& bWTree ) {
      Double_t DataSetWeight = 1.0 ;
      for ( vector<DataSetWght_t>::iterator itDSW = (Cfg.GetDataSetWghts())->begin() ; itDSW != (Cfg.GetDataSetWghts())->end() ; ++itDSW ) { 
        for ( vector<string>::iterator itDSN = (itDSW->DataSets).begin() ; itDSN != (itDSW->DataSets).end() ; ++itDSN ) {
-         if ( (*itDSN) == itD->NickName ) DataSetWeight *= itDSW->Result() ;
+         if ( (*itDSN) == itD->NickName ) {
+           itDSW->EvaFormula();
+           DataSetWeight *= itDSW->Result() ;
+         }
        }
      }
      // Compute Event Weight 

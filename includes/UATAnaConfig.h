@@ -138,6 +138,11 @@ class CtrlPlot_t : public TreeFormula_t {
   string         XaxisTitle ;
 };
 
+class  SignalName_t {
+  public:
+  string NickName;
+  string Legend;  
+};  
 
 class PrintEvt_t : public TreeFormula_t {
   public:
@@ -228,7 +233,7 @@ class UATAnaConfig {
 
   vector<InputData_t>    InputData  ;
   vector<DataGroup_t>    DataGroups ;
-
+  vector<SignalName_t>   SignalNames;
   vector<OutTTree_t>     OutTTree   ;
 
   vector<DataSetWght_t>  DataSetWghts ;
@@ -264,6 +269,7 @@ class UATAnaConfig {
    bool                MaskData;
    bool		       DrawRatio;
    bool	               DrawBgError;
+   bool                 stackSignal;
 
   // External Functions
   vector<string>       Func2Load ; 
@@ -312,7 +318,9 @@ class UATAnaConfig {
   bool                   GetMaskData()        { return  MaskData     ; }  
   vector<string>*        GetFunc2Load()       { return &Func2Load    ; }
   vector<Func2Init_t>*   GetFunc2Init()       { return &Func2Init    ; } 
-
+  vector<SignalName_t>*  GetSignalNames()     { return &SignalNames  ; }
+  bool                   GetStackSignal()     { return stackSignal   ; }
+  
   void                   SetDrawRatio(bool In)       { DrawRatio = In ; }
   void 			 SetDrawBgError(bool In)     { DrawBgError = In ; }
 

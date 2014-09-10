@@ -121,7 +121,7 @@ void ExtEffTH2_t::EvaExtEffTH2 (){
   } 
   if (xBin > 0 && yBin > 0 ) { Result_ = hEff->GetBinContent(xBin,yBin) ; }
   else                       { Result_ = 1.0 ; }
-  bEvaluated = true;
+    bEvaluated = true;
   return ;
 }
 
@@ -188,6 +188,7 @@ void UATAnaConfig::Reset(){
   
   DrawRatio = false;
   DrawBgError = false;
+  stackSignal = false;
 
   Func2Load.clear();
   Func2Init.clear();
@@ -247,6 +248,11 @@ void UATAnaConfig::ReadCfg(TString CfgName) {
           InputData.push_back(InDat);
        }
     } 
+    
+    // stackSignal
+    if ( Elements.at(0) == "StackSignal" ) {
+      stackSignal = true;
+    }
 
     // DataGroup
     if ( Elements.at(0) == "DataGroup" ) {
@@ -599,6 +605,15 @@ void UATAnaConfig::ReadCfg(TString CfgName) {
     if ( Elements.at(0) == "SignalName" ) {
        SignalName = Elements.at(1); 
       for ( int iE = 2 ; iE < (signed) Elements.size() ; ++iE ) SignalName += " " + Elements.at(iE) ;
+    }
+    
+     if ( Elements.at(0) == "SignalNames" ) {
+       SignalName_t signalName;
+       signalName.NickName = Elements.at(1); 
+       signalName.Legend = Elements.at(2);
+       
+       for ( int iE = 3 ; iE < (signed) Elements.size() ; ++iE ) signalName.Legend += " " + Elements.at(iE) ;
+       SignalNames.push_back(signalName);
     }
   
     // LimitBinName

@@ -547,10 +547,20 @@ void UATAnaConfig::ReadCfg(TString CfgName) {
     // CtrlPlots
     if ( Elements.at(0) == "CtrlPlot" ) {
       CtrlPlot_t CtrlPlot;
+      CtrlPlot.varBins = false;
       CtrlPlot.NickName   = Elements.at(1);
       CtrlPlot.nBins      = atoi(Elements.at(2).c_str()) ;
-      CtrlPlot.xMin       = atof(Elements.at(3).c_str()) ;
-      CtrlPlot.xMax       = atof(Elements.at(4).c_str()) ;
+      if( Elements.at(3).find(":") != std::string::npos) {
+        CtrlPlot.varBins = true;
+        vector<string> bins = UATokenize( Elements.at(3) , ':' );
+        for ( vector<string>::iterator itS = bins.begin() ; itS !=  bins.end() ; ++itS ) {
+          CtrlPlot.xBins.push_back(atof((*itS).c_str()));            
+        }
+      }
+      else {
+        CtrlPlot.xMin       = atof(Elements.at(3).c_str()) ;
+        CtrlPlot.xMax       = atof(Elements.at(4).c_str()) ;
+      }
       CtrlPlot.kLogY      = atoi(Elements.at(5).c_str()) ;
       CtrlPlot.Expression = Elements.at(6);
       SetCutLevels(Elements.at(7),CtrlPlot.CCNickName);

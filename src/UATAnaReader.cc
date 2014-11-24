@@ -79,12 +79,32 @@ void UATAnaReader::Init ( UATAnaConfig& Cfg , bool& bWTree ) {
     for ( vector<string>::iterator itCC = (itCP->CCNickName).begin() ; itCC != (itCP->CCNickName).end() ; ++itCC ) {
       for ( vector<InputData_t>::iterator itD = (Cfg.GetInputData())->begin() ; itD != (Cfg.GetInputData())->end() ; ++itD) {
         TString HistName = "PlotCC_"+itCP->NickName+"_"+*itCC+"_"+itD->NickName;
-        PlotCC.push_back ( new TH1F( HistName , HistName ,itCP->nBins,itCP->xMin,itCP->xMax) ) ;  
+        if(itCP->varBins) {
+            const int nBins = itCP->xBins.size();
+            float xBinsArray[nBins];
+            for ( int iS = 0; iS < nBins ; ++iS ) {
+                xBinsArray[iS] = itCP->xBins[iS];
+                cout << itCP->xBins[iS] << endl;
+            }
+            PlotCC.push_back ( new TH1F( HistName , HistName ,itCP->nBins,xBinsArray) ) ;  
+        }
+        else
+          PlotCC.push_back ( new TH1F( HistName , HistName ,itCP->nBins,itCP->xMin,itCP->xMax) ) ;  
       } 
       for ( vector<DataGroup_t>::iterator itDG = (Cfg.GetDataGroups())->begin() ; itDG !=  (Cfg.GetDataGroups())->end() ; ++itDG ) {
         for ( vector<BaseGroup_t>::iterator itBG = (itDG->Members).begin() ; itBG != (itDG->Members).end() ; ++itBG  ) {
           TString HistName = "PlotCC_"+itCP->NickName+"_"+*itCC+"_"+itDG->GroupName+"_"+itBG->BaseName ;
-          PlotCCGroup.push_back ( new TH1F( HistName , HistName ,itCP->nBins,itCP->xMin,itCP->xMax) ) ;   
+          if(itCP->varBins) {
+            const int nBins = itCP->xBins.size();
+            float xBinsArray[nBins];
+            for ( int iS = 0; iS < nBins ; ++iS ) {
+                xBinsArray[iS] = itCP->xBins[iS];
+                cout << itCP->xBins[iS] << endl;
+            }
+            PlotCCGroup.push_back ( new TH1F( HistName , HistName ,itCP->nBins,xBinsArray) ) ;  
+          }
+          else
+            PlotCCGroup.push_back ( new TH1F( HistName , HistName ,itCP->nBins,itCP->xMin,itCP->xMax) ) ;   
         }
       } 
     }
@@ -93,12 +113,35 @@ void UATAnaReader::Init ( UATAnaConfig& Cfg , bool& bWTree ) {
       for ( vector<ScanCut_t>::iterator iSCG = (Cfg.GetScanCuts())->begin() ; iSCG != (Cfg.GetScanCuts())->end() ; ++iSCG) { 
         for ( vector<InputData_t>::iterator itD = (Cfg.GetInputData())->begin() ; itD != (Cfg.GetInputData())->end() ; ++itD) {
           TString HistName = "PlotSC_"+iSCG->ScanName+"_"+itCP->NickName+"_"+*itSC+"_"+itD->NickName;
-          PlotSC.push_back ( new TH1F( HistName , HistName ,itCP->nBins,itCP->xMin,itCP->xMax) ) ;  
+          if(itCP->varBins) {
+            const int nBins = itCP->xBins.size();
+            float xBinsArray[nBins];
+            for ( int iS = 0; iS < nBins ; ++iS ) {
+                xBinsArray[iS] = itCP->xBins[iS];
+                cout << itCP->xBins[iS] << endl;
+            }
+            PlotCCGroup.push_back ( new TH1F( HistName , HistName ,itCP->nBins,xBinsArray) ) ;  
+            PlotSC.push_back ( new TH1F( HistName , HistName ,itCP->nBins,xBinsArray) ) ;  
+          }
+          else {
+            PlotCCGroup.push_back ( new TH1F( HistName , HistName ,itCP->nBins,itCP->xMin,itCP->xMax) ) ; 
+            PlotSC.push_back ( new TH1F( HistName , HistName ,itCP->nBins,itCP->xMin,itCP->xMax) ) ;  
+          }
         }
         for ( vector<DataGroup_t>::iterator itDG = (Cfg.GetDataGroups())->begin() ; itDG !=  (Cfg.GetDataGroups())->end() ; ++itDG ) {
           for ( vector<BaseGroup_t>::iterator itBG = (itDG->Members).begin() ; itBG != (itDG->Members).end() ; ++itBG  ) {
             TString HistName = "PlotSC_"+iSCG->ScanName+"_"+itCP->NickName+"_"+*itSC+"_"+itDG->GroupName+"_"+itBG->BaseName ;
-            PlotSCGroup.push_back ( new TH1F( HistName , HistName ,itCP->nBins,itCP->xMin,itCP->xMax) ) ;   
+            if(itCP->varBins) {
+                const int nBins = itCP->xBins.size();
+                float xBinsArray[nBins];
+                for ( int iS = 0; iS < nBins ; ++iS ) {
+                    xBinsArray[iS] = itCP->xBins[iS];
+                    cout << itCP->xBins[iS] << endl;
+                }
+                PlotSCGroup.push_back ( new TH1F( HistName , HistName ,itCP->nBins,xBinsArray) ) ;  
+            }
+            else
+                PlotSCGroup.push_back ( new TH1F( HistName , HistName ,itCP->nBins,itCP->xMin,itCP->xMax) ) ;   
           }
         } 
       }

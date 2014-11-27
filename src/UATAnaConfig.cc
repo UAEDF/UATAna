@@ -574,6 +574,29 @@ void UATAnaConfig::ReadCfg(TString CfgName) {
       CtrlPlots.push_back( CtrlPlot );    
       //cout << (CtrlPlot.NickName).c_str() << " " << (CtrlPlot.Expression).c_str() << endl;
     } 
+    
+    // GroupPlot
+    if ( Elements.at(0) == "GroupPlot" ) {
+      GroupPlot_t GroupPlot;
+      GroupPlot.NickName   = Elements.at(1);
+      vector<string> varLegend = UATokenize( Elements.at(2) , ';' );
+      for( vector<string>::iterator itS = varLegend.begin() ; itS !=  varLegend.end() ; ++itS ) {
+          vector<string> varLegendElement = UATokenize( *itS, ':' );
+          if( varLegendElement.size() != 3 )
+              cout << "Error: GroupPlot doesn't have correct structure (legend1:nickname1:color1;legend2:nickname2:color2;....)" << endl;
+          GroupPlot.plotLegend.push_back( varLegendElement[0] );
+          GroupPlot.plotNickname.push_back( varLegendElement[1] );
+          GroupPlot.plotColor.push_back( atoi(varLegendElement[2].c_str()) );
+      }
+      GroupPlot.kLogY = atoi(Elements.at(3).c_str()) ;
+      if ( Elements.size() > (signed) 4 ) {
+        GroupPlot.XaxisTitle = "";
+        for ( int iE = 4 ; iE < (signed) Elements.size() ; ++iE ) GroupPlot.XaxisTitle += Elements.at(iE) + " " ; 
+      } else {
+        GroupPlot.XaxisTitle = GroupPlot.NickName;
+      }
+      GroupPlots.push_back( GroupPlot );    
+    } 
 
     // PrintEvt
     if ( Elements.at(0) == "PrintEvt" ) {
@@ -590,7 +613,7 @@ void UATAnaConfig::ReadCfg(TString CfgName) {
       SetCutLevels(Elements.at(4),PrintEvt.SCNickName);
       vector<string> VarName = UATokenize( Elements.at(5) , ':' );
       for ( vector<string>::iterator itN = VarName.begin() ; itN != VarName.end() ; ++itN ) {
-        cout << *itN << endl ;
+//         cout << *itN << endl ;
         TreeFormula_t Var;
         Var.NickName   = *itN ;
         Var.Expression = *itN ; 

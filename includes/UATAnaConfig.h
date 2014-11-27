@@ -140,6 +140,16 @@ class CtrlPlot_t : public TreeFormula_t {
   string         XaxisTitle ;
 };
 
+class GroupPlot_t {
+  public:
+  string            NickName   ;
+  vector<string>    plotLegend ;
+  vector<string>    plotNickname ;
+  vector<Int_t>     plotColor ;
+  string            XaxisTitle ;
+  Int_t             kLogY      ;
+};
+
 class  SignalName_t {
   public:
   string NickName;
@@ -251,6 +261,7 @@ class UATAnaConfig {
   vector<ScanCut_t>      ScanCuts   ;
 
   vector<CtrlPlot_t>     CtrlPlots  ;
+  vector<GroupPlot_t>    GroupPlots  ;
   vector<PrintEvt_t>     PrintEvts  ;
   vector<string>         CPExtraText;
   vector<CutLines_t>     CutLines   ;
@@ -303,6 +314,7 @@ class UATAnaConfig {
   vector<string>*         GetCommonSign()     { return &CommonSign   ; }
   vector<ScanCut_t>*      GetScanCuts()       { return &ScanCuts     ; }
   vector<CtrlPlot_t>*     GetCtrlPlots()      { return &CtrlPlots    ; }
+  vector<GroupPlot_t>*    GetGroupPlots()     { return &GroupPlots   ; }
   vector<PrintEvt_t>*     GetPrintEvt()       { return &PrintEvts   ; } 
   vector<string>*         GetCPExtraText()    { return &CPExtraText ; }
   vector<CutLines_t>*     GetCutLines()       { return &CutLines    ; } 

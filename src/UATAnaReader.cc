@@ -84,7 +84,7 @@ void UATAnaReader::Init ( UATAnaConfig& Cfg , bool& bWTree ) {
             float xBinsArray[nBins];
             for ( int iS = 0; iS < nBins ; ++iS ) {
                 xBinsArray[iS] = itCP->xBins[iS];
-                cout << itCP->xBins[iS] << endl;
+//                 cout << itCP->xBins[iS] << endl;
             }
             PlotCC.push_back ( new TH1F( HistName , HistName ,itCP->nBins,xBinsArray) ) ;  
         }
@@ -99,7 +99,6 @@ void UATAnaReader::Init ( UATAnaConfig& Cfg , bool& bWTree ) {
             float xBinsArray[nBins];
             for ( int iS = 0; iS < nBins ; ++iS ) {
                 xBinsArray[iS] = itCP->xBins[iS];
-                cout << itCP->xBins[iS] << endl;
             }
             PlotCCGroup.push_back ( new TH1F( HistName , HistName ,itCP->nBins,xBinsArray) ) ;  
           }
@@ -118,7 +117,6 @@ void UATAnaReader::Init ( UATAnaConfig& Cfg , bool& bWTree ) {
             float xBinsArray[nBins];
             for ( int iS = 0; iS < nBins ; ++iS ) {
                 xBinsArray[iS] = itCP->xBins[iS];
-                cout << itCP->xBins[iS] << endl;
             }
             PlotCCGroup.push_back ( new TH1F( HistName , HistName ,itCP->nBins,xBinsArray) ) ;  
             PlotSC.push_back ( new TH1F( HistName , HistName ,itCP->nBins,xBinsArray) ) ;  
@@ -136,7 +134,6 @@ void UATAnaReader::Init ( UATAnaConfig& Cfg , bool& bWTree ) {
                 float xBinsArray[nBins];
                 for ( int iS = 0; iS < nBins ; ++iS ) {
                     xBinsArray[iS] = itCP->xBins[iS];
-                    cout << itCP->xBins[iS] << endl;
                 }
                 PlotSCGroup.push_back ( new TH1F( HistName , HistName ,itCP->nBins,xBinsArray) ) ;  
             }

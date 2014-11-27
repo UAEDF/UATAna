@@ -508,7 +508,7 @@ void UATAnaDisplay::PlotStack( string  DataSet , string  CutGroup , string  CutL
         }
      }
      if ( vCSignal.size() > 0) {
-       cout << "Changing Color" << vCSignal.at(iD) << " " << iD << endl ;
+//        cout << "Changing Color " << vCSignal.at(iD) << " " << iD << endl ;
        iStack->SetLineColor(vCSignal.at(iD));
 //        iStack->SetMarkerColor(kRed+1);
      } else {
@@ -1229,9 +1229,9 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg , bool SaveFig ) {
         for ( vector<CtrlPlot_t>::iterator itCP = (Cfg.GetCtrlPlots())->begin() ; itCP != (Cfg.GetCtrlPlots())->end() ; ++itCP ) {
           // clean
           bool iSPlotAtLvl = false ;
-          for ( vector<TH1F*>::iterator itH = vData  .begin() ; itH != vData  .end() ; ++itH ) delete (*itH) ; vData  .clear() ; vLData  .clear() ; 
-          for ( vector<TH1F*>::iterator itH = vSignal.begin() ; itH != vSignal.end() ; ++itH ) delete (*itH) ; vSignal.clear() ; vLSignal.clear() ;
-          for ( vector<TH1F*>::iterator itH = vBkgd  .begin() ; itH != vBkgd  .end() ; ++itH ) delete (*itH) ; vBkgd  .clear() ; vLBkgd  .clear() ; 
+          for ( vector<TH1F*>::iterator itH = vData  .begin() ; itH != vData  .end() ; ++itH ) delete (*itH) ; vData  .clear() ; vLData  .clear() ; vCData.clear() ; 
+          for ( vector<TH1F*>::iterator itH = vSignal.begin() ; itH != vSignal.end() ; ++itH ) delete (*itH) ; vSignal.clear() ; vLSignal.clear() ; vCSignal.clear() ; 
+          for ( vector<TH1F*>::iterator itH = vBkgd  .begin() ; itH != vBkgd  .end() ; ++itH ) delete (*itH) ; vBkgd  .clear() ; vLBkgd  .clear() ; vCBkgd.clear() ; 
           // Fill next histogram set
           for ( vector<string>::iterator itCC = (itCP->CCNickName).begin() ; itCC != (itCP->CCNickName).end() ; ++itCC ) {
             for ( vector<InputData_t>::iterator itD = (Cfg.GetInputData())->begin() ; itD != (Cfg.GetInputData())->end() ; ++itD , ++iH ) {
@@ -1268,9 +1268,9 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg , bool SaveFig ) {
         for ( vector<CtrlPlot_t>::iterator itCP = (Cfg.GetCtrlPlots())->begin() ; itCP != (Cfg.GetCtrlPlots())->end() ; ++itCP ) {
           // clean
           bool iSPlotAtLvl = false ;
-          for ( vector<TH1F*>::iterator itH = vData  .begin() ; itH != vData  .end() ; ++itH ) delete (*itH) ; vData  .clear() ; vLData  .clear() ; 
-          for ( vector<TH1F*>::iterator itH = vSignal.begin() ; itH != vSignal.end() ; ++itH ) delete (*itH) ; vSignal.clear() ; vLSignal.clear() ;
-          for ( vector<TH1F*>::iterator itH = vBkgd  .begin() ; itH != vBkgd  .end() ; ++itH ) delete (*itH) ; vBkgd  .clear() ; vLBkgd  .clear() ; 
+          for ( vector<TH1F*>::iterator itH = vData  .begin() ; itH != vData  .end() ; ++itH ) delete (*itH) ; vData  .clear() ; vLData  .clear() ; vCData.clear() ; 
+          for ( vector<TH1F*>::iterator itH = vSignal.begin() ; itH != vSignal.end() ; ++itH ) delete (*itH) ; vSignal.clear() ; vLSignal.clear() ; vCSignal.clear() ; 
+          for ( vector<TH1F*>::iterator itH = vBkgd  .begin() ; itH != vBkgd  .end() ; ++itH ) delete (*itH) ; vBkgd  .clear() ; vLBkgd  .clear() ; vCBkgd.clear() ; 
           // Fill next histogram set
           for ( vector<string>::iterator itCC = (itCP->CCNickName).begin() ; itCC != (itCP->CCNickName).end() ; ++itCC ) {
             for ( vector<DataGroup_t>::iterator itDG = (Cfg.GetDataGroups())->begin() ; itDG !=  (Cfg.GetDataGroups())->end() ; ++itDG ) {
@@ -1330,7 +1330,7 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg , bool SaveFig ) {
                       vCSignal.push_back(itBG->Color); 
 //                    
                       
-                      cout << itBG->Color << endl;
+//                       cout << itBG->Color << endl;
                     } //vLSignal.push_back(itBG->BaseName) ; }
                   }
                 }
@@ -1346,11 +1346,81 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg , bool SaveFig ) {
           } 
           if (iSPlotAtLvl) PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->XaxisTitle , CPExtraText ,  Cfg.GetTAnaName() , Cfg.GetTargetLumi() , SaveFig , Cfg.GetDrawBgError() , Cfg.GetDrawRatio() , CutLines , Cfg.GetCmsEnergy(), Cfg.GetStackSignal() ) ;
         }
-   
- 
-      } 
-
-    } else { 
+        
+        // -- GroupPlots --    
+        for ( vector<GroupPlot_t>::iterator itGP = (Cfg.GetGroupPlots())->begin() ; itGP != (Cfg.GetGroupPlots())->end() ; ++itGP ) {
+            // clean
+            bool iSPlotAtLvl = false ;
+            for ( vector<TH1F*>::iterator itH = vData  .begin() ; itH != vData  .end() ; ++itH ) delete (*itH) ; vData  .clear() ; vLData  .clear() ; vCData.clear() ; 
+            for ( vector<TH1F*>::iterator itH = vSignal.begin() ; itH != vSignal.end() ; ++itH ) delete (*itH) ; vSignal.clear() ; vLSignal.clear() ; vCSignal.clear() ; 
+            for ( vector<TH1F*>::iterator itH = vBkgd  .begin() ; itH != vBkgd  .end() ; ++itH ) delete (*itH) ; vBkgd  .clear() ; vLBkgd  .clear() ; vCBkgd.clear() ; 
+            
+            // Fill next histogram set
+            iH = 0 ;
+            for ( vector<CtrlPlot_t>::iterator itCP = (Cfg.GetCtrlPlots())->begin() ; itCP != (Cfg.GetCtrlPlots())->end() ; ++itCP ) {
+                for ( vector<string>::iterator itCC = (itCP->CCNickName).begin() ; itCC != (itCP->CCNickName).end() ; ++itCC ) {
+                    for ( vector<DataGroup_t>::iterator itDG = (Cfg.GetDataGroups())->begin() ; itDG !=  (Cfg.GetDataGroups())->end() ; ++itDG ) {
+                        for ( vector<BaseGroup_t>::iterator itBG = (itDG->Members).begin() ; itBG != (itDG->Members).end() ; ++itBG , ++iH ) {
+                            
+                            // Check if we want to plot this histogram
+                            bool useHist = false;
+                            int groupPlotIndex = 0;
+                            for( vector<string>::iterator itPN = (itGP->plotNickname).begin() ; itPN != (itGP->plotNickname).end() ; ++itPN , ++groupPlotIndex) {
+                                if ( ( *itPN == itCP->NickName ) && ( *itCC ==  CutLevel ) && ( itDG->GroupName == GroupName ) ) {
+                                    useHist = true;
+                                    break;
+                                }
+                            }
+                            
+                            if ( useHist ) {
+                                iSPlotAtLvl = true ;
+                                if ( itBG->Data  ) { vData.push_back   ( (TH1F*) (PlotCCGroup.at(iH))->Clone() ) ; vLData  .push_back(itBG->BaseName) ;  }
+                                if ( itBG->Bkgd  ) { 
+                                    TH1F* hTmp =  (TH1F*) (PlotCCGroup.at(iH))->Clone() ;
+                                    for ( vector<Systematic_t>::iterator itSyst = (Cfg.GetSystematic())->begin() ; itSyst != (Cfg.GetSystematic())->end() ; ++ itSyst ) {
+                                    //cout << "Syatematic : " << (itSyst->systName).c_str() << endl;
+                                    bool pFound = false ;
+                                    int  iSyst  = -1;
+                                    int  jSyst  =  0;
+                                    for ( vector<string>::iterator itSM  = (itSyst->systMember).begin() ; itSM != (itSyst->systMember).end() ; ++itSM , ++jSyst ) {
+                                        if ( (*itSM) == itBG->BaseName ) { pFound = true ; iSyst = jSyst ; }
+                                        //cout << (*itSM) << " =? " << itBG->BaseName << " " << pFound << endl ;
+                                    }   
+                                    if ( pFound ) {
+                                        for (Int_t i=1; i<= hTmp->GetNbinsX() ; i++) {
+                                        double syst = abs(hTmp->GetBinContent(i) * (itSyst->systVal).at(iSyst) - hTmp->GetBinContent(i))  ;
+                                        double err  = sqrt ( hTmp->GetBinError(i)*hTmp->GetBinError(i) + syst*syst) ;  
+                                        //cout <<  hTmp->GetBinContent(i) << " " << (itSyst->systVal).at(iSyst) << " " << syst << " " <<  hTmp->GetBinError(i) << " " << err << endl ; 
+                                        hTmp->SetBinError(i,err);
+                                        }
+                                    }
+                                    }
+                                    vBkgd.push_back   ( hTmp ) ;
+                                    vLBkgd  .push_back(itBG->BaseName) ;
+                                    vCBkgd.push_back(itBG->Color) ; 
+                                }
+                                if ( itBG->Signal) { 
+                                    vSignal.push_back ( (TH1F*) (PlotCCGroup.at(iH))->Clone() ) ;
+                                    vLSignal.push_back( itGP->plotLegend[groupPlotIndex] ) ; 
+                                    vCSignal.push_back( itGP->plotColor[groupPlotIndex] );   
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            vector<string> CutLines ; 
+            for ( vector<CutLines_t>::iterator itCL = (Cfg.GetCutLines())->begin() ; itCL != (Cfg.GetCutLines())->end() ; ++itCL ) {
+//                 cout << itCL->CPNickName  << " " << itGP->NickName << endl;
+                if ( itCL->CPNickName == itGP->NickName ) {
+                    for ( int iCL = 0 ; iCL < (signed) (itCL->CutLines).size() ; ++iCL ) CutLines.push_back((itCL->CutLines).at(iCL)) ;
+                }
+            } 
+            if (iSPlotAtLvl) PlotStack   ( itGP->NickName+"_"+DataSet , CutGroup , CutLevel , itGP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itGP->XaxisTitle , CPExtraText ,  Cfg.GetTAnaName() , Cfg.GetTargetLumi() , SaveFig , Cfg.GetDrawBgError() , Cfg.GetDrawRatio() , CutLines , Cfg.GetCmsEnergy(), Cfg.GetStackSignal() ) ;
+        }
+      }// end datagroup != 0
+    }// end CommonCuts
+    else { 
       string ScanName = ((Cfg.GetScanCuts())->at(iGroup-1)).ScanName ;
       CutGroup = ScanName ;   
 
@@ -1378,9 +1448,9 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg , bool SaveFig ) {
         for ( vector<CtrlPlot_t>::iterator itCP = (Cfg.GetCtrlPlots())->begin() ; itCP != (Cfg.GetCtrlPlots())->end() ; ++itCP ) {
           // clean
           bool iSPlotAtLvl = false ;
-          for ( vector<TH1F*>::iterator itH = vData  .begin() ; itH != vData  .end() ; ++itH ) delete (*itH) ; vData  .clear() ; vLData  .clear() ; 
-          for ( vector<TH1F*>::iterator itH = vSignal.begin() ; itH != vSignal.end() ; ++itH ) delete (*itH) ; vSignal.clear() ; vLSignal.clear() ;
-          for ( vector<TH1F*>::iterator itH = vBkgd  .begin() ; itH != vBkgd  .end() ; ++itH ) delete (*itH) ; vBkgd  .clear() ; vLBkgd  .clear() ; 
+          for ( vector<TH1F*>::iterator itH = vData  .begin() ; itH != vData  .end() ; ++itH ) delete (*itH) ; vData  .clear() ; vLData  .clear() ; vCData.clear() ;
+          for ( vector<TH1F*>::iterator itH = vSignal.begin() ; itH != vSignal.end() ; ++itH ) delete (*itH) ; vSignal.clear() ; vLSignal.clear() ; vCSignal.clear() ; 
+          for ( vector<TH1F*>::iterator itH = vBkgd  .begin() ; itH != vBkgd  .end() ; ++itH ) delete (*itH) ; vBkgd  .clear() ; vLBkgd  .clear() ; vCBkgd.clear() ; 
           // Fill next histogram set
           for ( vector<string>::iterator itCC = (itCP->SCNickName).begin() ; itCC != (itCP->SCNickName).end() ; ++itCC ) {
            for ( vector<ScanCut_t>::iterator itSC = (Cfg.GetScanCuts())->begin() ; itSC != (Cfg.GetScanCuts())->end() ; ++itSC , ++iSC ) { 
@@ -1415,82 +1485,157 @@ void UATAnaDisplay::CPlot ( UATAnaConfig& Cfg , bool SaveFig ) {
       } else {
         string GroupName = ((Cfg.GetDataGroups())->at(iData-1)).GroupName ;
         DataSet = GroupName ;
-
+        
         int iH = 0 ;
         for ( vector<CtrlPlot_t>::iterator itCP = (Cfg.GetCtrlPlots())->begin() ; itCP != (Cfg.GetCtrlPlots())->end() ; ++itCP ) {
-          // clean
-          bool iSPlotAtLvl = false ;
-          for ( vector<TH1F*>::iterator itH = vData  .begin() ; itH != vData  .end() ; ++itH ) delete (*itH) ; vData  .clear() ; vLData  .clear() ; 
-          for ( vector<TH1F*>::iterator itH = vSignal.begin() ; itH != vSignal.end() ; ++itH ) delete (*itH) ; vSignal.clear() ; vLSignal.clear() ;
-          for ( vector<TH1F*>::iterator itH = vBkgd  .begin() ; itH != vBkgd  .end() ; ++itH ) delete (*itH) ; vBkgd  .clear() ; vLBkgd  .clear() ; 
-          // Fill next histogram set
-          for ( vector<string>::iterator itCC = (itCP->SCNickName).begin() ; itCC != (itCP->SCNickName).end() ; ++itCC ) {
-           for ( vector<ScanCut_t>::iterator itSC = (Cfg.GetScanCuts())->begin() ; itSC != (Cfg.GetScanCuts())->end() ; ++itSC , ++iSC ) { 
+        // clean
+        bool iSPlotAtLvl = false ;
+        for ( vector<TH1F*>::iterator itH = vData  .begin() ; itH != vData  .end() ; ++itH ) delete (*itH) ; vData  .clear() ; vLData  .clear() ; vCData.clear()  ; 
+        for ( vector<TH1F*>::iterator itH = vSignal.begin() ; itH != vSignal.end() ; ++itH ) delete (*itH) ; vSignal.clear() ; vLSignal.clear() ; vCSignal.clear() ; 
+        for ( vector<TH1F*>::iterator itH = vBkgd  .begin() ; itH != vBkgd  .end() ; ++itH ) delete (*itH) ; vBkgd  .clear() ; vLBkgd  .clear() ; vCBkgd.clear() ; 
+        // Fill next histogram set
+        for ( vector<string>::iterator itCC = (itCP->SCNickName).begin() ; itCC != (itCP->SCNickName).end() ; ++itCC ) {
+        for ( vector<ScanCut_t>::iterator itSC = (Cfg.GetScanCuts())->begin() ; itSC != (Cfg.GetScanCuts())->end() ; ++itSC , ++iSC ) { 
             for ( vector<DataGroup_t>::iterator itDG = (Cfg.GetDataGroups())->begin() ; itDG !=  (Cfg.GetDataGroups())->end() ; ++itDG ) {
-              for ( vector<BaseGroup_t>::iterator itBG = (itDG->Members).begin() ; itBG != (itDG->Members).end() ; ++itBG , ++iH ) {
+            for ( vector<BaseGroup_t>::iterator itBG = (itDG->Members).begin() ; itBG != (itDG->Members).end() ; ++itBG , ++iH ) {
                 if ( ( *itCC ==  CutLevel ) && ( itSC->ScanName == ScanName ) && ( itDG->GroupName == GroupName ) ) {
-                  iSPlotAtLvl = true ;
-                  if ( itBG->Data  ) { vData.push_back   ( (TH1F*) (PlotSCGroup.at(iH))->Clone() ) ; vLData  .push_back(itBG->BaseName) ; }
-                  //if ( itBG->Bkgd  ) { vBkgd.push_back   ( (TH1F*) (PlotSCGroup.at(iH))->Clone() ) ; vLBkgd  .push_back(itBG->BaseName) ; vCBkgd.push_back(itBG->Color) ; }
-                  if ( itBG->Bkgd  ) { 
-                     TH1F* hTmp =  (TH1F*) (PlotSCGroup.at(iH))->Clone() ;
-                     for ( vector<Systematic_t>::iterator itSyst = (Cfg.GetSystematic())->begin() ; itSyst != (Cfg.GetSystematic())->end() ; ++ itSyst ) {
-                       //cout << "Syatematic : " << (itSyst->systName).c_str() << endl;
-                       bool pFound = false ;
-                       int  iSyst  = -1;
-                       int  jSyst  =  0;
-                       for ( vector<string>::iterator itSM  = (itSyst->systMember).begin() ; itSM != (itSyst->systMember).end() ; ++itSM , ++jSyst ) {
-                         if ( (*itSM) == itBG->BaseName ) { pFound = true ; iSyst = jSyst ; }
-                         //cout << (*itSM) << " =? " << itBG->BaseName << " " << pFound << endl ;
-                       }   
-                       if ( pFound ) {
-                         for (Int_t i=1; i<= hTmp->GetNbinsX() ; i++) {
-                           double syst = abs(hTmp->GetBinContent(i) * (itSyst->systVal).at(iSyst) - hTmp->GetBinContent(i))  ;
-                           double err  = sqrt ( hTmp->GetBinError(i)*hTmp->GetBinError(i) + syst*syst) ; 
-                           //cout <<  hTmp->GetBinContent(i) << " " << (itSyst->systVal).at(iSyst) << " " << syst << " " <<  hTmp->GetBinError(i) << " " << err << endl ; 
-                           hTmp->SetBinError(i,err);
-                         }
-                       }
-                     }
-                     vBkgd.push_back   ( hTmp ) ;
-                     vLBkgd  .push_back(itBG->BaseName) ;
-                     vCBkgd.push_back(itBG->Color) ; 
-                  }
+                iSPlotAtLvl = true ;
+                if ( itBG->Data  ) { vData.push_back   ( (TH1F*) (PlotSCGroup.at(iH))->Clone() ) ; vLData  .push_back(itBG->BaseName) ; }
+                //if ( itBG->Bkgd  ) { vBkgd.push_back   ( (TH1F*) (PlotSCGroup.at(iH))->Clone() ) ; vLBkgd  .push_back(itBG->BaseName) ; vCBkgd.push_back(itBG->Color) ; }
+                if ( itBG->Bkgd  ) { 
+                    TH1F* hTmp =  (TH1F*) (PlotSCGroup.at(iH))->Clone() ;
+                    for ( vector<Systematic_t>::iterator itSyst = (Cfg.GetSystematic())->begin() ; itSyst != (Cfg.GetSystematic())->end() ; ++ itSyst ) {
+                    //cout << "Syatematic : " << (itSyst->systName).c_str() << endl;
+                    bool pFound = false ;
+                    int  iSyst  = -1;
+                    int  jSyst  =  0;
+                    for ( vector<string>::iterator itSM  = (itSyst->systMember).begin() ; itSM != (itSyst->systMember).end() ; ++itSM , ++jSyst ) {
+                        if ( (*itSM) == itBG->BaseName ) { pFound = true ; iSyst = jSyst ; }
+                        //cout << (*itSM) << " =? " << itBG->BaseName << " " << pFound << endl ;
+                    }   
+                    if ( pFound ) {
+                        for (Int_t i=1; i<= hTmp->GetNbinsX() ; i++) {
+                        double syst = abs(hTmp->GetBinContent(i) * (itSyst->systVal).at(iSyst) - hTmp->GetBinContent(i))  ;
+                        double err  = sqrt ( hTmp->GetBinError(i)*hTmp->GetBinError(i) + syst*syst) ; 
+                        //cout <<  hTmp->GetBinContent(i) << " " << (itSyst->systVal).at(iSyst) << " " << syst << " " <<  hTmp->GetBinError(i) << " " << err << endl ; 
+                        hTmp->SetBinError(i,err);
+                        }
+                    }
+                    }
+                    vBkgd.push_back   ( hTmp ) ;
+                    vLBkgd  .push_back(itBG->BaseName) ;
+                    vCBkgd.push_back(itBG->Color) ; 
+                }
 
 
-                  if ( itBG->Signal) {
+                if ( itBG->Signal) {
                     bool iSAssoc = false ; 
 /*
                     if (  (((Cfg.GetScanCuts())->at(iGroup-1)).SignList).size() != 0 ) {
-                       for ( vector<string>::iterator itSL  = (((Cfg.GetScanCuts())->at(iGroup-1)).SignList).begin() ;
-                                                      itSL != (((Cfg.GetScanCuts())->at(iGroup-1)).SignList).end()   ; ++itSL ) {
-                         for ( vector<string>::iterator itBGM = (itBG->Members).begin() ;  itBGM != (itBG->Members).end() ; ++itBGM ) {
-                           if ( (*itBGM) == (*itSL) ) {iSAssoc = true;}
-                         } 
-                       }
+                    for ( vector<string>::iterator itSL  = (((Cfg.GetScanCuts())->at(iGroup-1)).SignList).begin() ;
+                                                    itSL != (((Cfg.GetScanCuts())->at(iGroup-1)).SignList).end()   ; ++itSL ) {
+                        for ( vector<string>::iterator itBGM = (itBG->Members).begin() ;  itBGM != (itBG->Members).end() ; ++itBGM ) {
+                        if ( (*itBGM) == (*itSL) ) {iSAssoc = true;}
+                        } 
+                    }
                     } else {iSAssoc = true;} 
 */
                     iSAssoc = true ;
                     if (iSAssoc) { vSignal.push_back ( (TH1F*) (PlotSCGroup.at(iH))->Clone() ) ;  vLSignal.push_back(Cfg.GetSignalName() ) ;    vCSignal.push_back(itBG->Color) ; }
 //                     vLSignal.push_back(itBG->BaseName) ; }
-                  }
                 }
-              }
+                }
             }
-           }
-          }
-          vector<string> CutLines ; 
-          for ( vector<CutLines_t>::iterator itCL = (Cfg.GetCutLines())->begin() ; itCL != (Cfg.GetCutLines())->end() ; ++itCL ) {
-            if ( itCL->CPNickName == itCP->NickName ) {
-              for ( int iCL = 0 ; iCL < (signed) (itCL->CutLines).size() ; ++iCL ) CutLines.push_back((itCL->CutLines).at(iCL)) ;
             }
-          } 
-          if (iSPlotAtLvl ) PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->XaxisTitle , CPExtraText ,  Cfg.GetTAnaName() , Cfg.GetTargetLumi() , SaveFig , Cfg.GetDrawBgError() , Cfg.GetDrawRatio(), CutLines , Cfg.GetCmsEnergy(), Cfg.GetStackSignal() ) ;
         }
-      } 
+        }
+        vector<string> CutLines ; 
+        for ( vector<CutLines_t>::iterator itCL = (Cfg.GetCutLines())->begin() ; itCL != (Cfg.GetCutLines())->end() ; ++itCL ) {
+            if ( itCL->CPNickName == itCP->NickName ) {
+            for ( int iCL = 0 ; iCL < (signed) (itCL->CutLines).size() ; ++iCL ) CutLines.push_back((itCL->CutLines).at(iCL)) ;
+            }
+        } 
+        if (iSPlotAtLvl ) PlotStack   ( itCP->NickName+"_"+DataSet , CutGroup , CutLevel , itCP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itCP->XaxisTitle , CPExtraText ,  Cfg.GetTAnaName() , Cfg.GetTargetLumi() , SaveFig , Cfg.GetDrawBgError() , Cfg.GetDrawRatio(), CutLines , Cfg.GetCmsEnergy(), Cfg.GetStackSignal() ) ;
+        }
+      
+        // -- GroupPlots --    
+        for ( vector<GroupPlot_t>::iterator itGP = (Cfg.GetGroupPlots())->begin() ; itGP != (Cfg.GetGroupPlots())->end() ; ++itGP ) {
+            // clean
+            bool iSPlotAtLvl = false ;
+            for ( vector<TH1F*>::iterator itH = vData  .begin() ; itH != vData  .end() ; ++itH ) delete (*itH) ; vData  .clear() ; vLData  .clear() ; vCData.clear() ; 
+            for ( vector<TH1F*>::iterator itH = vSignal.begin() ; itH != vSignal.end() ; ++itH ) delete (*itH) ; vSignal.clear() ; vLSignal.clear() ; vCSignal.clear() ; 
+            for ( vector<TH1F*>::iterator itH = vBkgd  .begin() ; itH != vBkgd  .end() ; ++itH ) delete (*itH) ; vBkgd  .clear() ; vLBkgd  .clear() ; vCBkgd.clear() ; 
+            
+            // Fill next histogram set
+            iH = 0 ;
+            for ( vector<CtrlPlot_t>::iterator itCP = (Cfg.GetCtrlPlots())->begin() ; itCP != (Cfg.GetCtrlPlots())->end() ; ++itCP ) {
+                for ( vector<string>::iterator itCC = (itCP->SCNickName).begin() ; itCC != (itCP->SCNickName).end() ; ++itCC ) {
+                for ( vector<ScanCut_t>::iterator itSC = (Cfg.GetScanCuts())->begin() ; itSC != (Cfg.GetScanCuts())->end() ; ++itSC , ++iSC ) { 
+                    for ( vector<DataGroup_t>::iterator itDG = (Cfg.GetDataGroups())->begin() ; itDG !=  (Cfg.GetDataGroups())->end() ; ++itDG ) {
+                    for ( vector<BaseGroup_t>::iterator itBG = (itDG->Members).begin() ; itBG != (itDG->Members).end() ; ++itBG , ++iH ) {
+                        
+                        // Check if we want to plot this histogram
+                        bool useHist = false;
+                        int groupPlotIndex = 0;
+                        for( vector<string>::iterator itPN = (itGP->plotNickname).begin() ; itPN != (itGP->plotNickname).end() ; ++itPN , ++groupPlotIndex) {
+                            if ( ( *itPN == itCP->NickName ) && ( *itCC ==  CutLevel ) && ( itDG->GroupName == GroupName )  && ( itSC->ScanName == ScanName )) {
+                                useHist = true;
+                                break;
+                            }
+                        }
+                        
+                        if ( useHist ) {
+                            iSPlotAtLvl = true ;
+                            if ( itBG->Data  ) { vData.push_back   ( (TH1F*) (PlotSCGroup.at(iH))->Clone() ) ; vLData  .push_back(itBG->BaseName) ; }
+                            //if ( itBG->Bkgd  ) { vBkgd.push_back   ( (TH1F*) (PlotSCGroup.at(iH))->Clone() ) ; vLBkgd  .push_back(itBG->BaseName) ; vCBkgd.push_back(itBG->Color) ; }
+                            if ( itBG->Bkgd  ) { 
+                                TH1F* hTmp =  (TH1F*) (PlotSCGroup.at(iH))->Clone() ;
+                                for ( vector<Systematic_t>::iterator itSyst = (Cfg.GetSystematic())->begin() ; itSyst != (Cfg.GetSystematic())->end() ; ++ itSyst ) {
+                                //cout << "Syatematic : " << (itSyst->systName).c_str() << endl;
+                                bool pFound = false ;
+                                int  iSyst  = -1;
+                                int  jSyst  =  0;
+                                for ( vector<string>::iterator itSM  = (itSyst->systMember).begin() ; itSM != (itSyst->systMember).end() ; ++itSM , ++jSyst ) {
+                                    if ( (*itSM) == itBG->BaseName ) { pFound = true ; iSyst = jSyst ; }
+                                    //cout << (*itSM) << " =? " << itBG->BaseName << " " << pFound << endl ;
+                                }   
+                                if ( pFound ) {
+                                    for (Int_t i=1; i<= hTmp->GetNbinsX() ; i++) {
+                                    double syst = abs(hTmp->GetBinContent(i) * (itSyst->systVal).at(iSyst) - hTmp->GetBinContent(i))  ;
+                                    double err  = sqrt ( hTmp->GetBinError(i)*hTmp->GetBinError(i) + syst*syst) ; 
+                                    //cout <<  hTmp->GetBinContent(i) << " " << (itSyst->systVal).at(iSyst) << " " << syst << " " <<  hTmp->GetBinError(i) << " " << err << endl ; 
+                                    hTmp->SetBinError(i,err);
+                                    }
+                                }
+                                }
+                                vBkgd.push_back   ( hTmp ) ;
+                                vLBkgd  .push_back(itBG->BaseName) ;
+                                vCBkgd.push_back(itBG->Color) ; 
+                            }
 
-
-    }
+                            if ( itBG->Signal) { 
+                                vSignal.push_back ( (TH1F*) (PlotSCGroup.at(iH))->Clone() ) ;
+                                vLSignal.push_back( itGP->plotLegend[groupPlotIndex] ) ; 
+                                vCSignal.push_back( itGP->plotColor[groupPlotIndex] );   
+                            }
+                        }
+                    }
+                    }
+                }
+                }
+                vector<string> CutLines ; 
+                for ( vector<CutLines_t>::iterator itCL = (Cfg.GetCutLines())->begin() ; itCL != (Cfg.GetCutLines())->end() ; ++itCL ) {
+                    if ( itCL->CPNickName == itGP->NickName ) {
+                    for ( int iCL = 0 ; iCL < (signed) (itCL->CutLines).size() ; ++iCL ) CutLines.push_back((itCL->CutLines).at(iCL)) ;
+                    }
+                } 
+                if (iSPlotAtLvl ) PlotStack   ( itGP->NickName+"_"+DataSet , CutGroup , CutLevel , itGP->kLogY , vData , vSignal  , vBkgd , vLData , vLSignal  , vLBkgd , vCData , vCSignal , vCBkgd , itGP->XaxisTitle , CPExtraText ,  Cfg.GetTAnaName() , Cfg.GetTargetLumi() , SaveFig , Cfg.GetDrawBgError() , Cfg.GetDrawRatio(), CutLines , Cfg.GetCmsEnergy(), Cfg.GetStackSignal() ) ;
+            }
+        }
+            
+          
+      }// End datagroup != 0 
+    }// End Scancuts
 
   	// last selections and new selection
   	cout << "\E[0;34mLast choice: \E[m\n" \

@@ -340,10 +340,11 @@ void UATAnaDisplay::Init ( UATAnaConfig& Cfg ) {
     for (vector<TH1F*>::iterator it = PlotSCGroup_.begin() ; it != PlotSCGroup_.end() ; ++it )  PlotSCGroup.push_back ( DrawOverflow(*it) ) ; 
   } else {
     for (vector<TH1F*>::iterator it = PlotCC_.begin() ; it != PlotCC_.end() ; ++it )  PlotCC.push_back ( (TH1F*) (*it)->Clone() ) ; 
-    for (vector<TH1F*>::iterator it = PlotSC_.begin() ; it != PlotSC_.end() ; ++it )  PlotSC.push_back ( (TH1F*) (*it)->Clone() ) ; 
-    for (vector<TH1F*>::iterator it = PlotCCGroup_.begin() ; it != PlotCCGroup_.end() ; ++it )  PlotCCGroup.push_back ( (TH1F*) (*it)->Clone() ) ; 
-    for (vector<TH1F*>::iterator it = PlotSCGroup_.begin() ; it != PlotSCGroup_.end() ; ++it )  PlotSCGroup.push_back ( (TH1F*) (*it)->Clone() ) ; 
+    for (vector<TH1F*>::iterator it = PlotSC_.begin() ; it != PlotSC_.end() ; ++it ) PlotSC.push_back ( (TH1F*) (*it)->Clone() ) ; 
+    for (vector<TH1F*>::iterator it = PlotCCGroup_.begin() ; it != PlotCCGroup_.end() ; ++it ) PlotCCGroup.push_back ( (TH1F*) (*it)->Clone() ) ; 
+    for (vector<TH1F*>::iterator it = PlotSCGroup_.begin() ; it != PlotSCGroup_.end() ; ++it ) PlotSCGroup.push_back ( (TH1F*) (*it)->Clone() ) ; 
   }
+  
 
 
   // Clean Temp objects 

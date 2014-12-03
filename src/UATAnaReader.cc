@@ -118,11 +118,9 @@ void UATAnaReader::Init ( UATAnaConfig& Cfg , bool& bWTree ) {
             for ( int iS = 0; iS < nBins ; ++iS ) {
                 xBinsArray[iS] = itCP->xBins[iS];
             }
-            PlotCCGroup.push_back ( new TH1F( HistName , HistName ,itCP->nBins,xBinsArray) ) ;  
             PlotSC.push_back ( new TH1F( HistName , HistName ,itCP->nBins,xBinsArray) ) ;  
           }
           else {
-            PlotCCGroup.push_back ( new TH1F( HistName , HistName ,itCP->nBins,itCP->xMin,itCP->xMax) ) ; 
             PlotSC.push_back ( new TH1F( HistName , HistName ,itCP->nBins,itCP->xMin,itCP->xMax) ) ;  
           }
         }
